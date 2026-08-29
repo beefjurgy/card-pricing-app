@@ -153,7 +153,7 @@ function titleMatchesExactGrade(title: string, gradingCompany: string, grade: st
 // specific disqualifying signal, unlike a different *grade number* from the
 // SAME company — a real PSA 9 listing is still a useful reference point for a
 // PSA 10 of the identical parallel/print-run, just an imperfect one.
-const KNOWN_GRADING_COMPANIES = ["PSA", "BGS", "SGC", "CGC", "CCG", "BGG", "PGS"];
+const KNOWN_GRADING_COMPANIES = ["PSA", "BGS", "SGC", "CGC", "CCG", "BGG", "PGS", "FCGS"];
 
 function titleMentionsCompany(title: string, company: string): boolean {
   return new RegExp(`\\b${escapeRegExp(company.trim())}\\b`, "i").test(title);
