@@ -24,6 +24,38 @@ const EMPTY_IDENTITY: CardIdentity = {
 
 type Step = "upload" | "identifying" | "review" | "saving";
 
+// Phone camera photos routinely run 3-4MB uncompressed at full resolution —
+// sending both front and back together easily blows past Vercel's 4.5MB
+// serverless request body cap (the deployed app failed identification with
+// exactly that symptom). A card's fine print is legible well below full
+// camera resolution, so downscale + re-encode before any upload.
+async function compressImage(file: File, maxDimension = 1600, quality = 0.85): Promise<File> {
+  if (file.size < 1_000_000) return file; // already small — skip the round trip through canvas
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", quality));
+    if (!blob) return file;
+
+    return new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" });
+  } catch {
+    // Decoding/canvas can fail for an unusual format — fall back to the
+    // original file rather than blocking the scan entirely.
+    return file;
+  }
+}
+
 export default function ScanPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -45,15 +77,17 @@ export default function ScanPage() {
   const [purchaseDate, setPurchaseDate] = useState("");
   const [purchasePlatform, setPurchasePlatform] = useState("");
 
-  function handleFile(file: File) {
-    setImageFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
+  async function handleFile(file: File) {
     setError(null);
+    const compressed = await compressImage(file);
+    setImageFile(compressed);
+    setPreviewUrl(URL.createObjectURL(compressed));
   }
 
-  function handleBackFile(file: File) {
-    setBackImageFile(file);
-    setBackPreviewUrl(URL.createObjectURL(file));
+  async function handleBackFile(file: File) {
+    const compressed = await compressImage(file);
+    setBackImageFile(compressed);
+    setBackPreviewUrl(URL.createObjectURL(compressed));
   }
 
   function onDrop(e: React.DragEvent) {
