@@ -170,8 +170,11 @@ function titleMentionsAnyOtherCompany(title: string, company: string): boolean {
 // Gold Etch" vs "Mini Diamond Gold Etch" can both be real parallels of the
 // same product with different, unrelated print runs). Unlike parallel names,
 // this number is unambiguous, so it's a reliable signal even from free text.
+// Excludes a "2025/26"-style season/year range, which reads identically to a
+// print run ("/26") but isn't one — the negative lookbehind skips any slash
+// immediately preceded by a "20YY" year.
 function extractPrintRun(text: string): number | null {
-  const m = text.match(/\/(\d{1,4})\b/);
+  const m = text.match(/(?<!20\d{2})\/(\d{1,4})\b/);
   return m ? parseInt(m[1], 10) : null;
 }
 
