@@ -175,6 +175,19 @@ function extractPrintRun(text: string): number | null {
   return m ? parseInt(m[1], 10) : null;
 }
 
+// The part of a parallel's name that isn't the print run itself, e.g. "Gold"
+// out of "Gold /10". Used to tell a genuinely unnumbered listing (seller just
+// omitted "/10") apart from a listing of the plain base/unnumbered version of
+// the same insert — a completely different, far more common and far cheaper
+// product than a low-numbered parallel.
+function extractParallelName(parallel: string): string {
+  return parallel.replace(/\/\d{1,4}\b/, "").trim();
+}
+
+function titleMentionsParallelName(title: string, parallelName: string): boolean {
+  return parallelName.length > 0 && normalize(title).includes(normalize(parallelName));
+}
+
 // Unlike print run or set name, sellers ALWAYS call out an autograph in the
 // title when one is present — it's one of the biggest value drivers on a
 // card, never something worth omitting. So treat this as a strict signal in
@@ -202,12 +215,21 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   // Drop listings that explicitly claim a different print run than this
   // card's — a /50 parallel and a /75 parallel are different products even
   // when both share words like "Gold Etch". A listing that doesn't mention a
-  // run at all is kept (benefit of the doubt — sellers often omit it).
+  // run at all is only given the benefit of the doubt (seller omitted it) if
+  // it at least names the parallel itself (e.g. "Gold") — a numbered
+  // parallel's plain unnumbered base version is a real, different, much
+  // cheaper product, and just never mentioning a run is exactly how it looks
+  // identical to "seller omitted the run" (this is exactly how a real /10
+  // Roger Clemens Gold parallel at $60 once got buried under a handful of
+  // $1-2 base "Dominators" insert listings that named no parallel at all).
   const identityRun = extractPrintRun(identity.parallel);
+  const parallelName = extractParallelName(identity.parallel);
   const runMatched = identityRun
     ? result.listings.filter((l) => {
         const listingRun = extractPrintRun(l.title);
-        return listingRun === null || listingRun === identityRun;
+        if (listingRun === identityRun) return true;
+        if (listingRun !== null) return false;
+        return parallelName ? titleMentionsParallelName(l.title, parallelName) : true;
       })
     : result.listings;
 
