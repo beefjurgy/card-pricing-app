@@ -32,10 +32,21 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
 
 # vercel
 .vercel
 
+# app runtime data — migrated to Neon + R2, this stays local-only as a backup
+/public/uploads/*
+!/public/uploads/.gitkeep
+/data/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent tooling, not app code
+.claude/
+.agents/
+skills-lock.json
