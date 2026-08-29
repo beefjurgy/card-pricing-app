@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +14,7 @@ import { SalesChart } from "@/components/SalesChart";
 import { EbayListings } from "@/components/EbayListings";
 import { ShopSupplies } from "@/components/ShopSupplies";
 import { CardDescription } from "@/components/CardDescription";
+import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CopyCertButton } from "@/components/CopyCertButton";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
@@ -46,6 +47,7 @@ function CardDetailPageInner() {
   const sortBy: SortOption = isSortOption(searchParamsSort) ? searchParamsSort : "recent";
   const [card, setCard] = useState<LibraryCard | null | undefined>(undefined);
   const [neighbors, setNeighbors] = useState<Neighbors | null>(null);
+  const [allCards, setAllCards] = useState<LibraryCard[] | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -67,6 +69,7 @@ function CardDetailPageInner() {
       .then((data) => {
         const cards = data?.cards as LibraryCard[] | undefined;
         if (!cards) return;
+        setAllCards(cards);
         const ordered = sortCards(cards, sortBy);
         const index = ordered.findIndex((c) => c.id === params.id);
         if (index === -1) {
@@ -100,6 +103,14 @@ function CardDetailPageInner() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [lightboxImage, neighbors, sortBy, router]);
+
+  // Same player, any other card in the library — not scoped to year/set/parallel,
+  // since the point is just "what else do I have of this guy" at a glance.
+  const otherCards = useMemo(() => {
+    if (!allCards || !card) return [];
+    const player = card.player.trim().toLowerCase();
+    return allCards.filter((c) => c.id !== card.id && c.player.trim().toLowerCase() === player);
+  }, [allCards, card]);
 
   async function handleDelete() {
     if (!card) return;
@@ -164,8 +175,8 @@ function CardDetailPageInner() {
         )}
       </div>
 
-      <div className="mt-4 grid md:grid-cols-[280px_1fr] gap-8">
-        <div>
+      <div className="mt-4 grid md:grid-cols-[280px_1fr] gap-8 min-w-0">
+        <div className="min-w-0">
           <div
             className={`group relative aspect-[3/4] rounded-xl overflow-hidden border border-border bg-surface ${
               card.imageUrl ? "cursor-zoom-in" : ""
@@ -240,7 +251,7 @@ function CardDetailPageInner() {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <div>
             <p className="text-muted text-sm">{title || "Unknown set"}</p>
             <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
@@ -272,6 +283,17 @@ function CardDetailPageInner() {
               )}
             </div>
           </div>
+
+          {otherCards.length > 0 && (
+            <div>
+              <SectionHeading className="mb-3">More {card.player} cards in your collection</SectionHeading>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {otherCards.map((c) => (
+                  <CardTile key={c.id} card={c} />
+                ))}
+              </div>
+            </div>
+          )}
 
           <CardDescription identity={card} />
 
