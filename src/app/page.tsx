@@ -11,6 +11,7 @@ export default function LibraryPage() {
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [sportFilter, setSportFilter] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/library")
@@ -25,17 +26,32 @@ export default function LibraryPage() {
       .catch(() => setError(true));
   }, [reloadKey]);
 
-  const totalValue = cards?.reduce((sum, c) => sum + c.valuation.estimate, 0) ?? 0;
-  const sortedCards = useMemo(() => (cards ? sortCards(cards, sortBy) : []), [cards, sortBy]);
+  // Built from whatever sports are actually present rather than a fixed list
+  // — automatically includes every sport the user has scanned, in whatever
+  // combination, without needing a code change each time a new one shows up.
+  const sportCounts = useMemo(() => {
+    if (!cards) return [];
+    const counts = new Map<string, number>();
+    for (const c of cards) counts.set(c.sport, (counts.get(c.sport) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  }, [cards]);
+
+  const filteredCards = useMemo(() => {
+    if (!cards) return [];
+    return sportFilter ? cards.filter((c) => c.sport === sportFilter) : cards;
+  }, [cards, sportFilter]);
+
+  const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
+  const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
           <p className="text-muted text-sm mt-1">
-            {cards ? `${cards.length} card${cards.length === 1 ? "" : "s"}` : "Loading…"}
-            {cards && cards.length > 0 && (
+            {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
+            {cards && filteredCards.length > 0 && (
               <>
                 {" "}
                 · Est. total value{" "}
@@ -46,31 +62,52 @@ export default function LibraryPage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {cards && cards.length > 1 && (
-            <label className="flex items-center gap-2 text-sm text-muted">
-              Sort by
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="px-2.5 py-1.5 rounded-md bg-surface-2 border border-border text-foreground focus:border-accent-2 outline-none"
-              >
-                {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
-                  <option key={key} value={key}>
-                    {SORT_LABELS[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          <Link
-            href="/scan"
-            className="px-4 py-2 rounded-md bg-brand text-white font-medium hover:opacity-90 transition-opacity text-sm"
-          >
-            + Add New Card
-          </Link>
-        </div>
+        <Link
+          href="/scan"
+          className="px-4 py-2 rounded-md bg-brand text-white font-medium hover:opacity-90 transition-opacity text-sm whitespace-nowrap"
+        >
+          + Add New Card
+        </Link>
       </div>
+
+      {cards && cards.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          <button
+            onClick={() => setSportFilter(null)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              sportFilter === null ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            All ({cards.length})
+          </button>
+          {sportCounts.map(([sport, count]) => (
+            <button
+              key={sport}
+              onClick={() => setSportFilter(sport)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                sportFilter === sport ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+              }`}
+            >
+              {sport} ({count})
+            </button>
+          ))}
+
+          <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap sm:ml-auto">
+            Sort by
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="px-2.5 py-1.5 rounded-md bg-surface-2 border border-border text-foreground focus:border-accent-2 outline-none"
+            >
+              {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
+                <option key={key} value={key}>
+                  {SORT_LABELS[key]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       {error && (
         <div className="rounded-xl border border-down/40 bg-down/10 p-12 text-center">
