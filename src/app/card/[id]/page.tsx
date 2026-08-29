@@ -284,17 +284,6 @@ function CardDetailPageInner() {
             </div>
           </div>
 
-          {otherCards.length > 0 && (
-            <div>
-              <SectionHeading className="mb-3">More {card.player} cards in your collection</SectionHeading>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {otherCards.map((c) => (
-                  <CardTile key={c.id} card={c} />
-                ))}
-              </div>
-            </div>
-          )}
-
           <CardDescription identity={card} />
 
           <PurchaseInfo card={card} onUpdate={setCard} />
@@ -348,6 +337,17 @@ function CardDetailPageInner() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {otherCards.length > 0 && (
+            <div>
+              <SectionHeading className="mb-3">More {card.player} cards in your collection</SectionHeading>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {otherCards.map((c) => (
+                  <CardTile key={c.id} card={c} />
+                ))}
               </div>
             </div>
           )}
