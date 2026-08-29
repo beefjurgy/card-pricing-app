@@ -46,9 +46,9 @@ export function CardDescription({ identity }: { identity: CardIdentity }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
-      <div className="flex items-center justify-between mb-3 gap-3">
+      <div className="flex flex-wrap items-center justify-between mb-3 gap-3">
         <SectionHeading>Card Description</SectionHeading>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-full border border-border overflow-hidden text-xs">
             {(Object.keys(VOICE_LABELS) as Voice[]).map((v) => (
               <button
