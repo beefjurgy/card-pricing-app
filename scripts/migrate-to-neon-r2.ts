@@ -87,7 +87,18 @@ async function main() {
   await ensureSchema();
 
   const raw = await fs.readFile(path.join(process.cwd(), "data", "library.json"), "utf-8");
-  const cards: LibraryCard[] = JSON.parse(raw);
+  const rawCards: LibraryCard[] = JSON.parse(raw);
+
+  // A few of the oldest cards predate isAutograph/autographCompany/
+  // autographGrade becoming consistently-set fields, so those keys are
+  // simply absent (not null) on their JSON objects — normalize to the
+  // column's NOT NULL defaults rather than let the insert reject them.
+  const cards = rawCards.map((card) => ({
+    ...card,
+    isAutograph: card.isAutograph ?? false,
+    autographCompany: card.autographCompany ?? "",
+    autographGrade: card.autographGrade ?? "",
+  }));
 
   let migrated = 0;
   let skipped = 0;
