@@ -1,4 +1,7 @@
-import { Valuation } from "@/lib/types";
+"use client";
+
+import { useState } from "react";
+import { LibraryCard, Valuation } from "@/lib/types";
 import { valueEmoji } from "@/lib/valueEmoji";
 
 function formatUsd(value: number): string {
@@ -26,7 +29,28 @@ const confidenceColor: Record<Valuation["confidence"], string> = {
   low: "bg-white/10 text-background",
 };
 
-export function ValuationCard({ valuation }: { valuation: Valuation }) {
+export function ValuationCard({
+  valuation,
+  cardId,
+  onRefresh,
+}: {
+  valuation: Valuation;
+  cardId: string;
+  onRefresh: (card: LibraryCard) => void;
+}) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function refresh() {
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/library/${cardId}/refresh-valuation`, { method: "POST" });
+      const data = await res.json();
+      if (data.card) onRefresh(data.card);
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
   return (
     <div className="rounded-xl bg-foreground text-background p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
@@ -34,9 +58,18 @@ export function ValuationCard({ valuation }: { valuation: Valuation }) {
           <p className="text-xs uppercase tracking-wide text-background mb-1">Estimated Value</p>
           <p className="text-5xl font-bold tracking-tight text-[#4ade80]">{formatUsd(valuation.estimate)}</p>
         </div>
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${confidenceColor[valuation.confidence]}`}>
-          {confidenceLabel[valuation.confidence]}
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${confidenceColor[valuation.confidence]}`}>
+            {confidenceLabel[valuation.confidence]}
+          </span>
+          <button
+            onClick={refresh}
+            disabled={refreshing}
+            className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
+          >
+            {refreshing ? "Refreshing…" : "🔄 Refresh"}
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-background">

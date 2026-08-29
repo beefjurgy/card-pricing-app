@@ -277,7 +277,7 @@ function CardDetailPageInner() {
 
           <PurchaseInfo card={card} onUpdate={setCard} />
 
-          <ValuationCard valuation={card.valuation} />
+          <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} />
 
           {card.trending && <TrendingCard trending={card.trending} />}
 

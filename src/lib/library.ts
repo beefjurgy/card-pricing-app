@@ -116,6 +116,26 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
   return rows.length ? rowToCard(rows[0]) : null;
 }
 
+// Used only by the refresh-valuation route, which computes these fields
+// server-side via getValuation() — never accepts them as client input, so a
+// narrow, purpose-built setter is fine here (unlike a generic patch, this
+// isn't exposed to arbitrary client-supplied values).
+export async function setValuationFields(
+  id: string,
+  fields: { valuation: Valuation; sales: Sale[]; population: Population | null; trending: TrendingSignal | null }
+): Promise<LibraryCard | null> {
+  const rows = (await sql`
+    UPDATE cards
+    SET valuation = ${JSON.stringify(fields.valuation)},
+        sales = ${JSON.stringify(fields.sales)},
+        population = ${fields.population ? JSON.stringify(fields.population) : null},
+        trending = ${fields.trending ? JSON.stringify(fields.trending) : null}
+    WHERE id = ${id}
+    RETURNING *
+  `) as CardRow[];
+  return rows.length ? rowToCard(rows[0]) : null;
+}
+
 export async function deleteCard(id: string): Promise<boolean> {
   // RETURNING the image columns in the same statement avoids a second round
   // trip just to find out what to remove from R2.
