@@ -44,6 +44,16 @@ export default function LibraryPage() {
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
 
+  // Only cards with a recorded purchase price count toward the overall
+  // gain/loss — mixing in cards with no known cost basis would make the
+  // percentage meaningless, same reasoning as the per-card figure.
+  const costBasisCards = filteredCards.filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number");
+  const totalPaid = costBasisCards.reduce((sum, c) => sum + c.purchasePrice, 0);
+  const totalPaidValue = costBasisCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
+  const overallDiff = totalPaidValue - totalPaid;
+  const overallPositive = overallDiff >= 0;
+  const overallPct = totalPaid > 0 ? Math.round((overallDiff / totalPaid) * 1000) / 10 : null;
+
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4">
@@ -57,6 +67,12 @@ export default function LibraryPage() {
               <span className="text-accent font-medium">
                 {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
               </span>
+              {overallPct !== null && (
+                <span className={`ml-1 font-medium ${overallPositive ? "text-up" : "text-down"}`}>
+                  ({overallPositive ? "+" : ""}
+                  {overallPct}%)
+                </span>
+              )}
             </>
           )}
         </p>
