@@ -46,28 +46,20 @@ export default function LibraryPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
-          <p className="text-muted text-sm mt-1">
-            {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
-            {cards && filteredCards.length > 0 && (
-              <>
-                {" "}
-                · Est. total value{" "}
-                <span className="text-accent font-medium">
-                  {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-                </span>
-              </>
-            )}
-          </p>
-        </div>
-        <Link
-          href="/scan"
-          className="px-4 py-2 rounded-md bg-brand text-white font-medium hover:opacity-90 transition-opacity text-sm whitespace-nowrap"
-        >
-          + Add New Card
-        </Link>
+      <div className="mb-4">
+        <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
+        <p className="text-muted text-sm mt-1">
+          {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
+          {cards && filteredCards.length > 0 && (
+            <>
+              {" "}
+              · Est. total value{" "}
+              <span className="text-accent font-medium">
+                {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              </span>
+            </>
+          )}
+        </p>
       </div>
 
       {cards && cards.length > 1 && (
