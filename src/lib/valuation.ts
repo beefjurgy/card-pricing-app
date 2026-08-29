@@ -175,6 +175,22 @@ function extractPrintRun(text: string): number | null {
   return m ? parseInt(m[1], 10) : null;
 }
 
+// Unlike print run or set name, sellers ALWAYS call out an autograph in the
+// title when one is present — it's one of the biggest value drivers on a
+// card, never something worth omitting. So treat this as a strict signal in
+// both directions: a listing that mentions "auto" for a non-auto card is a
+// mismatch (this is exactly how a $550 "Auto 10" listing once got averaged
+// in as a comp for a plain non-autographed Bo Jackson rookie), and a listing
+// that says nothing about an autograph for a card that IS autographed is
+// almost certainly a different (much cheaper) base/non-auto version.
+function titleIndicatesAutograph(title: string): boolean {
+  return /\bauto(?:s|graph(?:s|ed)?)?\b/i.test(title);
+}
+
+function titleAutographMismatch(title: string, isAutograph: boolean): boolean {
+  return titleIndicatesAutograph(title) !== isAutograph;
+}
+
 async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; broadMatch: boolean }> {
   // Sellers describe parallels/variants inconsistently (e.g. "Wave Refractor"
   // vs "Raywave" for the same print run), so an exact-text search alone can
@@ -195,6 +211,12 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
       })
     : result.listings;
 
+  // Drop listings whose autograph status contradicts the card's — an
+  // autographed insert and its non-auto base counterpart are wildly
+  // different products, and unlike print run or parallel name, sellers never
+  // omit "auto" from a title when a card actually has one.
+  const autoMatched = runMatched.filter((l) => !titleAutographMismatch(l.title, identity.isAutograph));
+
   // A graded card (e.g. PSA 10) and a raw copy of the same card are different
   // products, often 10-30x apart in price for modern cards — eBay's search
   // returns both indiscriminately, and for a low-value base card the raw
@@ -202,7 +224,7 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   // median toward whichever side has more listings, so only count listings
   // on the same side of that line as the user's own card.
   const isGraded = Boolean(identity.gradingCompany && identity.grade);
-  const sameGradedBucket = runMatched.filter((l) => (l.condition === "Graded") === isGraded);
+  const sameGradedBucket = autoMatched.filter((l) => (l.condition === "Graded") === isGraded);
 
   // Within "graded", pick the best available tier of evidence rather than
   // averaging everything in the bucket together or discarding real signal
