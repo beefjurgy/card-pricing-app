@@ -63,8 +63,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-border py-6 text-center text-xs text-muted space-y-2">
           <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
           <p>
-            <Link href="/vocabulary" className="hover:text-foreground hover:underline">
-              Lingo
+            <Link href="/vocabulary" className="hover:text-foreground">
+              <span className="inline-block font-medium bg-gradient-to-r from-accent-2/30 to-accent-2/30 bg-no-repeat [background-size:100%_40%] [background-position:0_82%]">
+                Lingo
+              </span>
             </Link>
           </p>
         </footer>
