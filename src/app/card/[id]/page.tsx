@@ -18,7 +18,7 @@ import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
 import { CopyCertButton } from "@/components/CopyCertButton";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
-import { getPlatformSearchUrl } from "@/lib/platformLinks";
+import { getPlatformSearchUrl, getSetInfoUrl } from "@/lib/platformLinks";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
 
 function formatUsd(value: number): string {
@@ -264,7 +264,17 @@ function CardDetailPageInner() {
 
         <div className="space-y-6 min-w-0">
           <div>
-            <p className="text-muted text-sm">{title || "Unknown set"}</p>
+            <p className="text-muted text-sm">
+              {title || "Unknown set"}{" "}
+              <a
+                href={getSetInfoUrl(card)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent-2 hover:underline"
+              >
+                Set info ↗
+              </a>
+            </p>
             <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
             <div className="mt-2 flex flex-wrap gap-2 text-xs">
               {card.cardNumber && (

@@ -36,6 +36,19 @@ export function cardQueryBroadest(card: QueryFields): string | null {
     .join(" ");
 }
 
+// Trading Card Database (tcdb.com) — a community-maintained checklist
+// database covering nearly every sports/trading card set ever released,
+// far more complete than manufacturer sites (which rarely keep release
+// info around for older or niche products). Its own search form isn't
+// reliable enough to deep-link into directly, so this scopes a normal web
+// search to the site instead, same pattern as the SITE_DOMAINS fallback
+// below. Uses the broad query (no parallel) since that's the set-level
+// info TCDB actually organizes by.
+export function getSetInfoUrl(card: QueryFields): string {
+  const query = `site:tcdb.com ${cardQueryBroad(card)}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
 // Domains we're confident enough in to scope a search to, for platforms whose
 // own internal search URL format isn't reliable enough to link to directly.
 const SITE_DOMAINS: Record<string, string> = {

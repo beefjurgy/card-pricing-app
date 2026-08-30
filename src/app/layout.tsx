@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import { RandomCardButton } from "@/components/RandomCardButton";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -43,12 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </span>
             </Link>
             <nav className="flex items-center gap-1 text-sm">
-              <Link
-                href="/"
-                className="px-3 py-2 rounded-md text-muted hover:text-foreground hover:bg-surface-2 transition-colors"
-              >
-                Nukes
-              </Link>
+              <RandomCardButton />
               <Link
                 href="/scan"
                 className="px-3 py-2 rounded-md bg-brand text-white font-medium hover:opacity-90 transition-opacity"
