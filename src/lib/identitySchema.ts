@@ -14,7 +14,11 @@ export const IDENTITY_TOOL = {
       brand: { type: "string", description: "Manufacturer, e.g. Topps, Panini, Bowman, Upper Deck." },
       setName: { type: "string", description: "Set name, e.g. Chrome, Prizm, Update Series." },
       cardNumber: { type: "string", description: "Card number, e.g. 193 or US175. Empty string if unknown." },
-      parallel: { type: "string", description: "Parallel/insert/variant, e.g. 'Silver Prizm' or 'Base Rookie'. Use 'Base' if standard." },
+      parallel: {
+        type: "string",
+        description:
+          "Parallel/insert/variant, e.g. 'Silver Prizm' or 'Base Rookie'. Use 'Base' if standard. If the card is serial-numbered (a print run like '086/150' printed on the card), append the run as e.g. 'Silver Prizm /150' — this is how the pricing lookup tells a scarce numbered parallel apart from the far more common unnumbered version of the same insert, so include it here even if you also mention the exact serial number in notes.",
+      },
       gradingCompany: {
         type: "string",
         description: "Grading company if graded, as its abbreviation (e.g. PSA, BGS, SGC, CCG, BGG, PGS). Empty string if ungraded/raw/unknown.",
