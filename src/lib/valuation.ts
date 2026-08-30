@@ -56,8 +56,19 @@ function scoreMatch(identity: CardIdentity, entry: MarketEntry): { score: number
   // disagreement.
   if (identity.year && entry.year && identity.year !== entry.year) return { score: 0, distinguishing: 0 };
 
+  // Year match alone is NOT distinguishing enough to accept a match — a
+  // player can have many different cards (different set, different card
+  // number) in the very same year, and year+brand+sport was previously
+  // enough on its own to pass the acceptance threshold below. That let two
+  // completely different Brock Purdy rookie cards (2022 Panini Chronicles
+  // "Panini Base" #PA-19 and Chronicles Photogenic #PH-36, both raw) both
+  // get matched to an unrelated mock entry — 2022 Panini PRIZM #343, SGC
+  // 10 graded — purely because the year matched, even though the card
+  // number and set name were both known and both clearly disagreed. Year
+  // still counts toward the score for ranking among real candidates, but
+  // only a card-number or set-name match counts as genuine distinguishing
+  // corroboration.
   let distinguishing = 0;
-  if (identity.year && identity.year === entry.year) distinguishing += 15;
   if (identity.cardNumber && entry.cardNumber && normalize(identity.cardNumber) === normalize(entry.cardNumber)) {
     distinguishing += 15;
   }
@@ -66,6 +77,7 @@ function scoreMatch(identity: CardIdentity, entry: MarketEntry): { score: number
   }
 
   let weakScore = 0;
+  if (identity.year && identity.year === entry.year) weakScore += 15;
   if (identity.brand && normalize(identity.brand) === normalize(entry.brand)) weakScore += 10;
   if (identity.sport && identity.sport === entry.sport) weakScore += 5;
 
