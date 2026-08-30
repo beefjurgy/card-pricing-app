@@ -80,17 +80,23 @@ export default function LibraryPage() {
             <>
               {" "}
               · Est. total value{" "}
-              <Link href="/portfolio" className="hover:underline">
-                <span className="text-accent font-medium">
-                  {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-                </span>
-                {overallPct !== null && (
-                  <span className={`ml-1 font-medium ${overallPositive ? "text-up" : "text-down"}`}>
-                    ({overallPositive ? "+" : ""}
-                    {overallPct}%)
-                  </span>
-                )}
-              </Link>
+              <span className="text-accent font-medium">
+                {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+              </span>
+              {overallPct !== null && (
+                <>
+                  {" "}
+                  ·{" "}
+                  <Link href="/portfolio" className="hover:underline">
+                    <span className={`font-medium ${overallPositive ? "text-up" : "text-down"}`}>
+                      {overallPositive ? "+" : ""}
+                      {overallDiff.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} (
+                      {overallPositive ? "+" : ""}
+                      {overallPct}%)
+                    </span>
+                  </Link>
+                </>
+              )}
             </>
           )}
         </p>
