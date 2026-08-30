@@ -1,12 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
-import { getFeaturedIds, onFeaturedChange } from "@/lib/featured";
 
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the
@@ -58,13 +57,18 @@ function LibraryPageInner() {
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "1");
 
   // A bare "/" visit (no filters in the URL at all) opens straight to
-  // Featured, if any cards have been marked — read once on mount,
-  // client-only since localStorage isn't available during server
-  // rendering. Any URL that already carries an explicit filter (a
-  // restored view via back-navigation, or one clicked this session) is
-  // left alone; only a genuinely fresh load with nothing set falls back
-  // to Featured.
+  // Featured, if any cards have been marked — deferred until the cards
+  // themselves first load (see the fetch effect below), since isFeatured
+  // now lives on the card record itself rather than being knowable ahead
+  // of the fetch. Runs only on that first load, not on every subsequent
+  // cards refresh — otherwise toggling a star while "All" is explicitly
+  // selected would keep jumping back to Featured. Any URL that already
+  // carries an explicit filter (a restored view via back-navigation, or
+  // one clicked this session) is left alone.
+  const appliedDefaultRef = useRef(false);
   useEffect(() => {
+    if (!cards || appliedDefaultRef.current) return;
+    appliedDefaultRef.current = true;
     const hasAnyFilter =
       searchParams.get("sport") ||
       searchParams.get("graded") ||
@@ -72,9 +76,9 @@ function LibraryPageInner() {
       searchParams.get("patch") ||
       searchParams.get("numbered") ||
       searchParams.get("featured");
-    if (!hasAnyFilter && getFeaturedIds().length > 0) setFeaturedOnly(true);
+    if (!hasAnyFilter && cards.some((c) => c.isFeatured)) setFeaturedOnly(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cards]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -124,10 +128,7 @@ function LibraryPageInner() {
   const autoCount = sportFilteredCards.filter((c) => c.isAutograph).length;
   const patchCount = sportFilteredCards.filter(isPatchCard).length;
   const numberedCount = sportFilteredCards.filter(isNumberedCard).length;
-  const [featuredVersion, setFeaturedVersion] = useState(0);
-  useEffect(() => onFeaturedChange(() => setFeaturedVersion((v) => v + 1)), []);
-  const featuredIds = useMemo(() => new Set(getFeaturedIds()), [featuredVersion]);
-  const featuredCount = sportFilteredCards.filter((c) => featuredIds.has(c.id)).length;
+  const featuredCount = sportFilteredCards.filter((c) => c.isFeatured).length;
 
   const filteredCards = useMemo(() => {
     return sportFilteredCards.filter((c) => {
@@ -135,10 +136,14 @@ function LibraryPageInner() {
       if (autoOnly && !c.isAutograph) return false;
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
-      if (featuredOnly && !featuredIds.has(c.id)) return false;
+      if (featuredOnly && !c.isFeatured) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, featuredIds]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly]);
+
+  function handleFeaturedChange(id: string, isFeatured: boolean) {
+    setCards((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, isFeatured } : c)) : prev));
+  }
 
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
@@ -306,7 +311,7 @@ function LibraryPageInner() {
       {cards && cards.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {sortedCards.map((card) => (
-            <CardTile key={card.id} card={card} sortBy={sortBy} />
+            <CardTile key={card.id} card={card} sortBy={sortBy} onFeaturedChange={handleFeaturedChange} />
           ))}
         </div>
       )}

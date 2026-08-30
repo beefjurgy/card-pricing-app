@@ -101,4 +101,5 @@ export interface LibraryCard extends CardIdentity {
   purchasePrice: number | null;
   purchaseDate: string | null;
   purchasePlatform: string | null;
+  isFeatured: boolean;
 }

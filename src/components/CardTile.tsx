@@ -1,23 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { SortOption } from "@/lib/librarySort";
 import { valueEmoji } from "@/lib/valueEmoji";
-import { isFeatured, toggleFeatured } from "@/lib/featured";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-export function CardTile({ card, sortBy }: { card: LibraryCard; sortBy?: SortOption }) {
+export function CardTile({
+  card,
+  sortBy,
+  onFeaturedChange,
+}: {
+  card: LibraryCard;
+  sortBy?: SortOption;
+  onFeaturedChange?: (id: string, isFeatured: boolean) => void;
+}) {
   const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
-  // Read from localStorage only after mount — matches server-rendered markup
-  // on first paint, then reflects the real per-browser featured state.
-  const [featured, setFeatured] = useState(false);
-  useEffect(() => setFeatured(isFeatured(card.id)), [card.id]);
+  const [saving, setSaving] = useState(false);
+
+  async function toggleFeatured(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (saving) return;
+    const next = !card.isFeatured;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/library/${card.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: next }),
+      });
+      const data = await res.json();
+      if (data.card) onFeaturedChange?.(card.id, data.card.isFeatured);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <Link
@@ -39,15 +62,12 @@ export function CardTile({ card, sortBy }: { card: LibraryCard; sortBy?: SortOpt
           </span>
         )}
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setFeatured(toggleFeatured(card.id));
-          }}
-          title={featured ? "Remove from Featured" : "Add to Featured"}
-          className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-sm hover:bg-black/80 transition-colors"
+          onClick={toggleFeatured}
+          disabled={saving}
+          title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+          className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-sm hover:bg-black/80 transition-colors disabled:opacity-50"
         >
-          {featured ? "⭐" : "☆"}
+          {card.isFeatured ? "⭐" : "☆"}
         </button>
       </div>
       <div className="p-3 flex-1 flex flex-col gap-1">

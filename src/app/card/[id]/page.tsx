@@ -20,7 +20,6 @@ import { CopyCertButton } from "@/components/CopyCertButton";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
 import { getPlatformSearchUrl, getSetInfoUrl } from "@/lib/platformLinks";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
-import { isFeatured, toggleFeatured } from "@/lib/featured";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -53,7 +52,7 @@ function CardDetailPageInner() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [zoomed, setZoomed] = useState(false);
-  const [featured, setFeatured] = useState(false);
+  const [togglingFeatured, setTogglingFeatured] = useState(false);
 
   useEffect(() => {
     fetch(`/api/library/${params.id}`)
@@ -61,10 +60,21 @@ function CardDetailPageInner() {
       .then((data) => setCard(data?.card ?? null));
   }, [params.id]);
 
-  // This route stays mounted across Prev/Next navigation (only params.id
-  // changes), so the featured flag has to be re-read per card rather than
-  // just initialized once.
-  useEffect(() => setFeatured(isFeatured(params.id)), [params.id]);
+  async function toggleFeatured() {
+    if (!card || togglingFeatured) return;
+    setTogglingFeatured(true);
+    try {
+      const res = await fetch(`/api/library/${card.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: !card.isFeatured }),
+      });
+      const data = await res.json();
+      if (data.card) setCard(data.card);
+    } finally {
+      setTogglingFeatured(false);
+    }
+  }
 
   // The library page's own sort order is passed through the URL (?sort=...)
   // rather than persisted anywhere, so Prev/Next walks the same ordering the
@@ -260,12 +270,13 @@ function CardDetailPageInner() {
           ) : (
             <div className="mt-4 flex items-center justify-end gap-2">
               <button
-                onClick={() => setFeatured(toggleFeatured(card.id))}
-                aria-label={featured ? "Remove from Featured" : "Add to Featured"}
-                title={featured ? "Remove from Featured" : "Add to Featured"}
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center"
+                onClick={toggleFeatured}
+                disabled={togglingFeatured}
+                aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
               >
-                {featured ? "⭐" : "☆"}
+                {card.isFeatured ? "⭐" : "☆"}
               </button>
               <button
                 onClick={() => setConfirmingDelete(true)}

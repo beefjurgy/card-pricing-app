@@ -36,6 +36,7 @@ interface CardRow {
   purchase_price: string | null; // NUMERIC comes back as a string from the driver
   purchase_date: string | null;
   purchase_platform: string | null;
+  is_featured: boolean;
 }
 
 function rowToCard(row: CardRow): LibraryCard {
@@ -66,6 +67,7 @@ function rowToCard(row: CardRow): LibraryCard {
     purchasePrice: row.purchase_price !== null ? Number(row.purchase_price) : null,
     purchaseDate: row.purchase_date,
     purchasePlatform: row.purchase_platform,
+    isFeatured: row.is_featured,
   };
 }
 
@@ -81,7 +83,7 @@ export async function addCard(card: LibraryCard): Promise<void> {
       grading_company, grade, cert_number, is_autograph, autograph_company, autograph_grade,
       image_url, back_image_url, date_added, identify_confidence, identify_notes,
       valuation, sales, population, trending,
-      purchase_price, purchase_date, purchase_platform
+      purchase_price, purchase_date, purchase_platform, is_featured
     ) VALUES (
       ${card.id}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel},
       ${card.gradingCompany}, ${card.grade}, ${card.certNumber}, ${card.isAutograph}, ${card.autographCompany}, ${card.autographGrade},
@@ -89,7 +91,7 @@ export async function addCard(card: LibraryCard): Promise<void> {
       ${JSON.stringify(card.valuation)}, ${JSON.stringify(card.sales)},
       ${card.population ? JSON.stringify(card.population) : null},
       ${card.trending ? JSON.stringify(card.trending) : null},
-      ${card.purchasePrice}, ${card.purchaseDate}, ${card.purchasePlatform}
+      ${card.purchasePrice}, ${card.purchaseDate}, ${card.purchasePlatform}, ${card.isFeatured}
     )
   `;
 }
@@ -99,8 +101,10 @@ export async function getCard(id: string): Promise<LibraryCard | null> {
   return rows.length ? rowToCard(rows[0]) : null;
 }
 
-// The route's PATCH surface only ever touches purchase-related fields, so
-// mirror that here rather than building a generic dynamic-column UPDATE.
+// The route's PATCH surface only ever touches purchase info and the
+// isFeatured toggle — both harmless personal-organization fields, unlike
+// identity/valuation/images — so mirror that here rather than building a
+// generic dynamic-column UPDATE.
 export async function updateCard(id: string, patch: Partial<LibraryCard>): Promise<LibraryCard | null> {
   const existing = await getCard(id);
   if (!existing) return null;
@@ -109,7 +113,8 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
     UPDATE cards
     SET purchase_price = ${merged.purchasePrice},
         purchase_date = ${merged.purchaseDate},
-        purchase_platform = ${merged.purchasePlatform}
+        purchase_platform = ${merged.purchasePlatform},
+        is_featured = ${merged.isFeatured}
     WHERE id = ${id}
     RETURNING *
   `) as CardRow[];
