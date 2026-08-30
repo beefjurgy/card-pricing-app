@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
-import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
+import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the
@@ -18,14 +19,44 @@ function isPatchCard(card: LibraryCard): boolean {
 }
 
 export default function LibraryPage() {
+  return (
+    <Suspense>
+      <LibraryPageInner />
+    </Suspense>
+  );
+}
+
+function LibraryPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
-  const [sportFilter, setSportFilter] = useState<string | null>(null);
-  const [gradedOnly, setGradedOnly] = useState(false);
-  const [autoOnly, setAutoOnly] = useState(false);
-  const [patchOnly, setPatchOnly] = useState(false);
+
+  // Filter/sort state is mirrored into the URL (see the effect below) so
+  // that navigating away and back — via the card page's "← Nukes" button,
+  // or a plain browser back — restores the exact same filtered/sorted view
+  // instead of resetting to the unfiltered library. Read once on mount as
+  // the initial value; genuinely new navigations to "/" with no params
+  // still land on a clean, unfiltered "All" view.
+  const initialSort = searchParams.get("sort");
+  const [sortBy, setSortBy] = useState<SortOption>(isSortOption(initialSort) ? initialSort : "recent");
+  const [sportFilter, setSportFilter] = useState<string | null>(searchParams.get("sport"));
+  const [gradedOnly, setGradedOnly] = useState(searchParams.get("graded") === "1");
+  const [autoOnly, setAutoOnly] = useState(searchParams.get("auto") === "1");
+  const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (sortBy !== "recent") params.set("sort", sortBy);
+    if (sportFilter) params.set("sport", sportFilter);
+    if (gradedOnly) params.set("graded", "1");
+    if (autoOnly) params.set("auto", "1");
+    if (patchOnly) params.set("patch", "1");
+    const query = params.toString();
+    router.replace(query ? `/?${query}` : "/", { scroll: false });
+  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, router]);
 
   useEffect(() => {
     fetch("/api/library")
