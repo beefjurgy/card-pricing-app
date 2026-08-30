@@ -153,6 +153,94 @@ async function fetchEspnCareerStats(
   };
 }
 
+// Wikipedia's football-biography infobox is the only source found that
+// tracks a soccer player's TOTAL career across every club and the national
+// team, rather than just the current season — ESPN's soccer API (unlike its
+// NBA/NFL data) has no combined "Career" split at all, only the current
+// season broken out separately per competition (league, cup, internationals),
+// which is why this doesn't reuse fetchEspnCareerStats. Free and keyless.
+// Reliable because Wikipedia's own numbered caps{N}/goals{N} (each club
+// stint) and nationalcaps{N}/nationalgoals{N} (national team) fields are
+// already the per-stint totals editors maintain — summing them gives the
+// same lifetime total the infobox itself implies, without needing to walk
+// every season individually.
+async function fetchWikipediaWikitext(player: string): Promise<string | null> {
+  const direct = (await fetchJson(
+    `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(player)}&prop=wikitext&format=json&section=0&redirects=1`
+  )) as { parse?: { wikitext?: { "*"?: string } } } | null;
+  const directText = direct?.parse?.wikitext?.["*"];
+  if (directText) return directText;
+
+  // Direct title lookup failed (redirect, disambiguation, name doesn't
+  // exactly match the article title) — fall back to a real search.
+  const search = (await fetchJson(
+    `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+      `${player} footballer`
+    )}&format=json&srlimit=1`
+  )) as { query?: { search?: { title?: string }[] } } | null;
+  const title = search?.query?.search?.[0]?.title;
+  if (!title) return null;
+
+  const retry = (await fetchJson(
+    `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=wikitext&format=json&section=0&redirects=1`
+  )) as { parse?: { wikitext?: { "*"?: string } } } | null;
+  return retry?.parse?.wikitext?.["*"] ?? null;
+}
+
+// Infobox field values are sometimes wrapped in a wikilink (e.g. a heavily
+// capped international appearing as "[[List of ... caps|207]]"), an HTML
+// comment ("104<!-- LEAGUE ONLY -->"), or a footnote template — strip all of
+// that down to the leading number.
+function cleanWikiInfoboxValue(raw: string): number {
+  let s = raw.replace(/<!--[\s\S]*?-->/g, "");
+  s = s.replace(/\{\{efn[^}]*\}\}/g, "");
+  s = s.replace(/<ref[^>]*\/>/g, "").replace(/<ref[\s\S]*?<\/ref>/g, "");
+  const link = s.match(/\[\[([^\]]+)\]\]/);
+  if (link) {
+    const inner = link[1];
+    s = inner.includes("|") ? inner.slice(inner.lastIndexOf("|") + 1) : inner;
+  }
+  const num = s.match(/\d+/);
+  return num ? parseInt(num[0], 10) : 0;
+}
+
+// Matches "| goals3 = 84" but not "| nationalgoals3 = 7" — the pipe+whitespace
+// anchor sits immediately before the field name, and "nationalgoals3" has
+// "national" there instead, so the two numbered field families never collide.
+function sumInfoboxField(block: string, fieldPrefix: string): number {
+  const pattern = new RegExp(`\\|\\s*${fieldPrefix}\\d+\\s*=\\s*(.+)`, "g");
+  let total = 0;
+  for (const match of block.matchAll(pattern)) {
+    total += cleanWikiInfoboxValue(match[1]);
+  }
+  return total;
+}
+
+async function fetchSoccerCareerStats(player: string): Promise<CareerStats | null> {
+  const wikitext = await fetchWikipediaWikitext(player);
+  if (!wikitext) return null;
+
+  const infoboxMatch = wikitext.match(/\{\{Infobox football biography([\s\S]*?)\n\}\}/i);
+  if (!infoboxMatch) return null;
+  const block = infoboxMatch[1];
+
+  const clubApps = sumInfoboxField(block, "caps");
+  const clubGoals = sumInfoboxField(block, "goals");
+  const intlCaps = sumInfoboxField(block, "nationalcaps");
+  const intlGoals = sumInfoboxField(block, "nationalgoals");
+  if (!clubApps && !clubGoals && !intlCaps && !intlGoals) return null;
+
+  const lines: { label: string; value: string }[] = [];
+  if (clubApps || clubGoals) {
+    lines.push({ label: "APP", value: String(clubApps) }, { label: "G", value: String(clubGoals) });
+  }
+  if (intlCaps || intlGoals) {
+    lines.push({ label: "CAPS", value: String(intlCaps) }, { label: "INT'L G", value: String(intlGoals) });
+  }
+
+  return { lines, asOf: "career, live" };
+}
+
 async function fetchLiveCareerStats(player: string, sport: Sport): Promise<CareerStats | null> {
   switch (sport) {
     case "Baseball":
@@ -164,11 +252,7 @@ async function fetchLiveCareerStats(player: string, sport: Sport): Promise<Caree
     case "Football":
       return fetchEspnCareerStats("football", "nfl", "NFL", player);
     case "Soccer":
-      // Not wired up yet — soccer careers span club + country across many
-      // leagues/competitions, unlike a single closed league, so this needs
-      // its own research pass (verify a real data source) rather than
-      // reusing the NBA/NFL ESPN pattern as-is.
-      return null;
+      return fetchSoccerCareerStats(player);
     default:
       return null;
   }
