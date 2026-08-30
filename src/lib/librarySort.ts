@@ -1,6 +1,6 @@
 import { LibraryCard } from "./types";
 
-export type SortOption = "recent" | "oldest" | "value-high" | "value-low" | "brand" | "grade" | "sport";
+export type SortOption = "recent" | "oldest" | "value-high" | "value-low" | "brand" | "grade" | "sport" | "autograph";
 
 export const SORT_LABELS: Record<SortOption, string> = {
   recent: "Recently Added",
@@ -10,6 +10,7 @@ export const SORT_LABELS: Record<SortOption, string> = {
   brand: "Brand (A–Z)",
   grade: "Grade (High to Low)",
   sport: "Sport (A–Z)",
+  autograph: "Autographs First",
 };
 
 function gradeValue(grade: string): number {
@@ -34,6 +35,8 @@ export function sortCards(cards: LibraryCard[], sortBy: SortOption): LibraryCard
       return sorted.sort((a, b) => gradeValue(b.grade) - gradeValue(a.grade));
     case "sport":
       return sorted.sort((a, b) => a.sport.localeCompare(b.sport) || a.player.localeCompare(b.player));
+    case "autograph":
+      return sorted.sort((a, b) => Number(b.isAutograph) - Number(a.isAutograph) || b.valuation.estimate - a.valuation.estimate);
   }
 }
 
