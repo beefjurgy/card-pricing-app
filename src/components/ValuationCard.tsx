@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { LibraryCard, Valuation } from "@/lib/types";
 import { valueEmoji } from "@/lib/valueEmoji";
+import { isProtectedValuation } from "@/lib/valuationProtection";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -39,6 +40,7 @@ export function ValuationCard({
   onRefresh: (card: LibraryCard) => void;
 }) {
   const [refreshing, setRefreshing] = useState(false);
+  const protectedValuation = isProtectedValuation(valuation.note);
 
   async function refresh() {
     setRefreshing(true);
@@ -62,13 +64,22 @@ export function ValuationCard({
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${confidenceColor[valuation.confidence]}`}>
             {confidenceLabel[valuation.confidence]}
           </span>
-          <button
-            onClick={refresh}
-            disabled={refreshing}
-            className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
-          >
-            {refreshing ? "Refreshing…" : "🔄 Refresh"}
-          </button>
+          {protectedValuation ? (
+            <span
+              className="text-xs text-background/50 whitespace-nowrap"
+              title="Manually verified from a real sold comp — protected from automatic refresh"
+            >
+              🔒 Protected
+            </span>
+          ) : (
+            <button
+              onClick={refresh}
+              disabled={refreshing}
+              className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
+            >
+              {refreshing ? "Refreshing…" : "🔄 Refresh"}
+            </button>
+          )}
         </div>
       </div>
 
