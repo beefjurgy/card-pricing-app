@@ -199,20 +199,37 @@ function extractParallelName(parallel: string): string {
   return parallel.replace(/\/\d{1,4}\b/, "").trim();
 }
 
+// Words so generic to a product line (often implied rather than stated —
+// "Prizm"/"Refractor" describe the whole product, not one specific parallel
+// within it) that requiring them would create false negatives against real
+// sellers who drop them, without adding any real specificity of their own.
+const GENERIC_PARALLEL_WORDS = new Set(["prizm", "refractor", "parallel", "insert", "base"]);
+
 // A bare substring check isn't enough — many products have several distinct
 // parallels that all start with the same base color/name, at very different
 // values (e.g. "Green", "Green Disco", "Green Shimmer" are three different
-// parallels of the same insert). A genuine match ends at the identity's own
-// parallel name — the card number, a print run, punctuation, or the end of
-// the title comes next, not another qualifying word. This is exactly how a
-// real $20 "Aspirations Green /399" listing once got diluted down to $4 by
-// "Green Disco" listings (a different, far more common parallel) that
-// shared nothing with it but the word "Green".
+// parallels of the same insert). For a single distinguishing word, a genuine
+// match ends there — the card number, a print run, punctuation, or the end
+// of the title comes next, not another qualifying word (this is exactly how
+// a real $20 "Aspirations Green /399" listing once got diluted down to $4 by
+// "Green Disco" listings that shared nothing with it but the word "Green").
+// For a multi-word name (e.g. "Blue Hyper Prizm"), requiring every
+// non-generic word to appear as its own whole word is specific enough on its
+// own — a genuinely different parallel won't happen to contain all of them —
+// while tolerating a seller who drops a redundant trailing word like "Prizm"
+// (this is exactly how "Blue Hyper" without "Prizm" was originally missed).
 function titleMentionsParallelName(title: string, parallelName: string): boolean {
-  const trimmed = parallelName.trim();
-  if (!trimmed) return false;
-  const pattern = new RegExp(`\\b${escapeRegExp(trimmed)}\\b(?!\\s*[a-zA-Z])`, "i");
-  return pattern.test(title);
+  const words = parallelName
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w && !GENERIC_PARALLEL_WORDS.has(w.toLowerCase()));
+  if (words.length === 0) return false;
+
+  if (words.length === 1) {
+    const pattern = new RegExp(`\\b${escapeRegExp(words[0])}\\b(?!\\s*[a-zA-Z])`, "i");
+    return pattern.test(title);
+  }
+  return words.every((w) => new RegExp(`\\b${escapeRegExp(w)}\\b`, "i").test(title));
 }
 
 // Unlike print run or set name, sellers ALWAYS call out an autograph in the
@@ -249,16 +266,37 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   // identical to "seller omitted the run" (this is exactly how a real /10
   // Roger Clemens Gold parallel at $60 once got buried under a handful of
   // $1-2 base "Dominators" insert listings that named no parallel at all).
+  //
+  // Critically, the parallel-name check below runs whenever there IS a
+  // parallel name — not only when the card also happens to be numbered. A
+  // card like "Blue Hyper Prizm" (no print run at all) still names a
+  // specific parallel distinct from siblings like "Pandora" or "Neon Green
+  // Prizm" in the very same insert set, at wildly different values; gating
+  // the name check behind "only if numbered" let exactly that kind of card
+  // get diluted by every other named parallel of the same insert.
   const identityRun = extractPrintRun(identity.parallel);
   const parallelName = extractParallelName(identity.parallel);
-  const runMatched = identityRun
-    ? result.listings.filter((l) => {
-        const listingRun = extractPrintRun(l.title);
-        if (listingRun === identityRun) return true;
-        if (listingRun !== null) return false;
-        return parallelName ? titleMentionsParallelName(l.title, parallelName) : true;
-      })
-    : result.listings;
+  const runMatched = result.listings.filter((l) => {
+    const listingRun = extractPrintRun(l.title);
+
+    // Both sides claim an explicit run — that's the most reliable signal
+    // available, so let it decide regardless of any naming differences.
+    if (identityRun !== null && listingRun !== null) {
+      return listingRun === identityRun;
+    }
+
+    if (identityRun !== null || parallelName) {
+      // No name to check against — this only happens for a bare numbered
+      // parallel with no color/style name at all (e.g. "/50"); keep the
+      // same benefit-of-the-doubt as the run-only case above.
+      if (!parallelName) return true;
+      return titleMentionsParallelName(l.title, parallelName);
+    }
+
+    // A plain "Base" identity with no run and no distinguishing name — no
+    // parallel to corroborate, so nothing here disqualifies a listing.
+    return true;
+  });
 
   // Drop listings whose autograph status contradicts the card's — an
   // autographed insert and its non-auto base counterpart are wildly
