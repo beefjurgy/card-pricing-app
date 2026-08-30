@@ -60,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main className="flex-1">{children}</main>
         <footer className="border-t border-border py-6 text-center text-xs text-muted">
-          Pricing shown is sample market data for demonstration purposes, not financial advice.
+          Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.
         </footer>
       </body>
     </html>
