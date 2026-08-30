@@ -12,6 +12,8 @@ export default function LibraryPage() {
   const [reloadKey, setReloadKey] = useState(0);
   const [sortBy, setSortBy] = useState<SortOption>("recent");
   const [sportFilter, setSportFilter] = useState<string | null>(null);
+  const [gradedOnly, setGradedOnly] = useState(false);
+  const [autoOnly, setAutoOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/library")
@@ -36,10 +38,24 @@ export default function LibraryPage() {
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [cards]);
 
-  const filteredCards = useMemo(() => {
+  // Sport narrows first, then Graded/Auto layer on top of that — the pill
+  // counts for those two reflect the sport-filtered set so they stay
+  // meaningful whichever sport tab is active.
+  const sportFilteredCards = useMemo(() => {
     if (!cards) return [];
     return sportFilter ? cards.filter((c) => c.sport === sportFilter) : cards;
   }, [cards, sportFilter]);
+
+  const gradedCount = sportFilteredCards.filter((c) => c.gradingCompany && c.grade).length;
+  const autoCount = sportFilteredCards.filter((c) => c.isAutograph).length;
+
+  const filteredCards = useMemo(() => {
+    return sportFilteredCards.filter((c) => {
+      if (gradedOnly && !(c.gradingCompany && c.grade)) return false;
+      if (autoOnly && !c.isAutograph) return false;
+      return true;
+    });
+  }, [sportFilteredCards, gradedOnly, autoOnly]);
 
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
@@ -99,6 +115,25 @@ export default function LibraryPage() {
               {sport} ({count})
             </button>
           ))}
+
+          <span className="w-px self-stretch bg-border mx-1" />
+
+          <button
+            onClick={() => setGradedOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              gradedOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            Graded ({gradedCount})
+          </button>
+          <button
+            onClick={() => setAutoOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              autoOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            ✍️ Auto ({autoCount})
+          </button>
 
           <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap sm:ml-auto">
             Sort by
