@@ -29,7 +29,11 @@ export const IDENTITY_TOOL = {
         description:
           "The certification/serial number printed on the grading company's slab label (often next to a QR code), e.g. '55120539'. Empty string if ungraded or the number isn't legible.",
       },
-      isAutograph: { type: "boolean", description: "True if the card has a visible autograph/signature on it (on-card or sticker auto)." },
+      isAutograph: {
+        type: "boolean",
+        description:
+          "True only if there's a genuine handwritten signature on the card (on-card or sticker auto) — an actual pen stroke with natural handwriting variation. Many modern insert/relic designs use bold stylized script-style typography as a printed background design element (e.g. a player's name or a slogan in a graffiti/signature-style font woven into the artwork); that's part of the printed design, not a real autograph, even though it can look signature-like at a glance. False for a relic/memorabilia card whose only 'signature-like' element is this kind of printed design typography.",
+      },
       autographCompany: {
         type: "string",
         description: "Authentication company for the autograph if stated on the card/slab (e.g. PSA/DNA, JSA, Beckett Authentication, Panini Authentic, Topps Certified Autograph). Empty string if not autographed or the authenticator isn't stated.",
