@@ -35,7 +35,7 @@ export function RandomCardButton() {
       aria-label="Show me a random card"
       className="px-3 py-2 rounded-md text-muted hover:text-foreground hover:bg-surface-2 transition-colors disabled:opacity-40 text-lg leading-none"
     >
-      {rolling ? "🎲…" : "🎲"}
+      {rolling ? "🎲🎲…" : "🎲🎲"}
     </button>
   );
 }

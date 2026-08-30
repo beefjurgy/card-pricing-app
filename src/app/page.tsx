@@ -80,9 +80,11 @@ export default function LibraryPage() {
             <>
               {" "}
               · Est. total value{" "}
-              <span className="text-accent font-medium">
-                {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-              </span>
+              <Link href="/portfolio" className="hover:underline">
+                <span className="text-accent font-medium">
+                  {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+                </span>
+              </Link>
               {overallPct !== null && (
                 <>
                   {" "}

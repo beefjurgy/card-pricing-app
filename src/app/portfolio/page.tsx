@@ -63,6 +63,12 @@ export default function PortfolioPage() {
   const overallDiff = latest ? latest.value - latest.paid : 0;
   const overallPct = latest && latest.paid > 0 ? Math.round((overallDiff / latest.paid) * 1000) / 10 : null;
 
+  // The library page's "Est. total value" — every card, whether or not a
+  // purchase price was ever recorded. Shown here too, clearly labeled, so
+  // it's obvious this is a different (larger) figure than "Priced Value"
+  // below rather than looking like the same number failing to match.
+  const fullCollectionValue = cards?.reduce((sum, c) => sum + c.valuation.estimate, 0) ?? 0;
+
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
       <Link href="/" className="text-muted hover:text-foreground text-sm">
@@ -88,11 +94,19 @@ export default function PortfolioPage() {
         <>
           <div className="mt-6 flex flex-wrap gap-6">
             <div>
-              <p className="text-xs text-muted uppercase tracking-wide">Total Paid</p>
+              <p className="text-xs text-muted uppercase tracking-wide">Full Collection Value</p>
+              <p className="text-2xl font-bold text-accent">{formatUsd(fullCollectionValue)}</p>
+              <p className="text-xs text-muted mt-0.5">Same as the library page — every card</p>
+            </div>
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-border flex flex-wrap gap-6">
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wide">Paid (priced cards)</p>
               <p className="text-2xl font-bold">{formatUsd(latest.paid)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted uppercase tracking-wide">Est. Value</p>
+              <p className="text-xs text-muted uppercase tracking-wide">Value (priced cards)</p>
               <p className="text-2xl font-bold text-accent">{formatUsd(latest.value)}</p>
             </div>
             {overallPct !== null && (
@@ -106,6 +120,10 @@ export default function PortfolioPage() {
               </div>
             )}
           </div>
+          <p className="text-xs text-muted mt-2">
+            The chart and figures below only cover cards with a recorded purchase price — that's the only way a real gain/loss
+            can be computed.
+          </p>
 
           <div className="h-96 w-full mt-8">
             <ResponsiveContainer width="100%" height="100%">
