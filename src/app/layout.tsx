@@ -39,8 +39,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
               <Logo size={32} />
-              <span className="text-xl font-bold tracking-tight">
-                Beefy<span className="text-brand">Nukes</span>
+              <span className="flex items-baseline gap-2">
+                <span className="text-xl font-bold tracking-tight">
+                  Beefy<span className="text-brand">Nukes</span>
+                </span>
+                <span className="hidden sm:inline text-xs text-muted italic">
+                  Everything you want to know about your collection.
+                </span>
               </span>
             </Link>
             <nav className="flex items-center gap-1 text-sm">
@@ -55,8 +60,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </div>
         </header>
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-border py-6 text-center text-xs text-muted">
-          Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.
+        <footer className="border-t border-border py-6 text-center text-xs text-muted space-y-2">
+          <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
+          <p>
+            <Link href="/vocabulary" className="hover:text-foreground hover:underline">
+              Hobby Vocabulary
+            </Link>
+          </p>
         </footer>
       </body>
     </html>

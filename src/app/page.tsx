@@ -88,7 +88,6 @@ export default function LibraryPage() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4">
         <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
-        <p className="text-muted text-sm italic mt-1">Everything you want to know about your collection.</p>
         <p className="text-muted text-sm mt-1">
           {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
           {cards && filteredCards.length > 0 && (
