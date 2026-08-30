@@ -119,7 +119,7 @@ export default function LibraryPage() {
       </div>
 
       {cards && cards.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 mb-8">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <button
             onClick={() => setSportFilter(null)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
@@ -166,8 +166,12 @@ export default function LibraryPage() {
           >
             🧵 Patch ({patchCount})
           </button>
+        </div>
+      )}
 
-          <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap sm:ml-auto">
+      {cards && cards.length > 1 && (
+        <div className="flex justify-end mb-8">
+          <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap">
             Sort by
             <select
               value={sortBy}
