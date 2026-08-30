@@ -7,6 +7,8 @@ import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 
+const FEATURED_SPORT_KEY = "beefynukes:featuredSport";
+
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the
 // identify step already fills in — parallel and set name reliably mention
@@ -54,6 +56,20 @@ function LibraryPageInner() {
   const [autoOnly, setAutoOnly] = useState(searchParams.get("auto") === "1");
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
   const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
+  const [featuredSport, setFeaturedSport] = useState<string | null>(null);
+
+  // A bare "/" visit (no ?sport= at all) lands on the featured sport instead
+  // of "All", if one's been set — read once on mount, client-only since
+  // localStorage isn't available during server rendering. Any URL that
+  // already carries a sport (a filtered view restored via back-navigation,
+  // or one clicked within this session) is left alone; only a genuinely
+  // fresh load without an explicit filter falls back to the featured one.
+  useEffect(() => {
+    const saved = localStorage.getItem(FEATURED_SPORT_KEY);
+    if (saved) setFeaturedSport(saved);
+    if (saved && !searchParams.get("sport")) setSportFilter(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -181,6 +197,28 @@ function LibraryPageInner() {
               {sport} ({count})
             </button>
           ))}
+
+          {sportFilter && (
+            <button
+              onClick={() => {
+                if (featuredSport === sportFilter) {
+                  localStorage.removeItem(FEATURED_SPORT_KEY);
+                  setFeaturedSport(null);
+                } else {
+                  localStorage.setItem(FEATURED_SPORT_KEY, sportFilter);
+                  setFeaturedSport(sportFilter);
+                }
+              }}
+              title={
+                featuredSport === sportFilter
+                  ? `${sportFilter} is your default homepage view — click to clear`
+                  : `Make ${sportFilter} your default homepage view`
+              }
+              className="px-2 py-1.5 rounded-full text-sm transition-colors hover:bg-surface-2 text-muted hover:text-foreground"
+            >
+              {featuredSport === sportFilter ? "★" : "☆"}
+            </button>
+          )}
 
           <span className="w-px self-stretch bg-border mx-1" />
 
