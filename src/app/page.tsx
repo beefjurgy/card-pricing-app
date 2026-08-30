@@ -118,7 +118,7 @@ function LibraryPageInner() {
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4">
-        <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
+        <h1 className="text-3xl font-bold tracking-tight">My Collection</h1>
         <p className="text-muted text-sm mt-1">
           {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
           {cards && filteredCards.length > 0 && (
