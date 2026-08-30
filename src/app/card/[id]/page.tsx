@@ -20,6 +20,7 @@ import { CopyCertButton } from "@/components/CopyCertButton";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
 import { getPlatformSearchUrl, getSetInfoUrl } from "@/lib/platformLinks";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
+import { isFeatured, toggleFeatured } from "@/lib/featured";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -52,12 +53,18 @@ function CardDetailPageInner() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  const [featured, setFeatured] = useState(false);
 
   useEffect(() => {
     fetch(`/api/library/${params.id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setCard(data?.card ?? null));
   }, [params.id]);
+
+  // This route stays mounted across Prev/Next navigation (only params.id
+  // changes), so the featured flag has to be re-read per card rather than
+  // just initialized once.
+  useEffect(() => setFeatured(isFeatured(params.id)), [params.id]);
 
   // The library page's own sort order is passed through the URL (?sort=...)
   // rather than persisted anywhere, so Prev/Next walks the same ordering the
@@ -251,14 +258,24 @@ function CardDetailPageInner() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setConfirmingDelete(true)}
-              aria-label="Remove card"
-              title="Remove card"
-              className="mt-4 ml-auto w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
-            >
-              🗑️
-            </button>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setFeatured(toggleFeatured(card.id))}
+                aria-label={featured ? "Remove from Featured" : "Add to Featured"}
+                title={featured ? "Remove from Featured" : "Add to Featured"}
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center"
+              >
+                {featured ? "⭐" : "☆"}
+              </button>
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                aria-label="Remove card"
+                title="Remove card"
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
+              >
+                🗑️
+              </button>
+            </div>
           )}
         </div>
 

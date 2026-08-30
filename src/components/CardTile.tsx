@@ -1,8 +1,12 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { SortOption } from "@/lib/librarySort";
 import { valueEmoji } from "@/lib/valueEmoji";
+import { isFeatured, toggleFeatured } from "@/lib/featured";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -10,6 +14,11 @@ function formatUsd(value: number): string {
 
 export function CardTile({ card, sortBy }: { card: LibraryCard; sortBy?: SortOption }) {
   const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
+  // Read from localStorage only after mount — matches server-rendered markup
+  // on first paint, then reflects the real per-browser featured state.
+  const [featured, setFeatured] = useState(false);
+  useEffect(() => setFeatured(isFeatured(card.id)), [card.id]);
+
   return (
     <Link
       href={sortBy ? `/card/${card.id}?sort=${sortBy}` : `/card/${card.id}`}
@@ -29,6 +38,17 @@ export function CardTile({ card, sortBy }: { card: LibraryCard; sortBy?: SortOpt
             ✍️
           </span>
         )}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setFeatured(toggleFeatured(card.id));
+          }}
+          title={featured ? "Remove from Featured" : "Add to Featured"}
+          className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-sm hover:bg-black/80 transition-colors"
+        >
+          {featured ? "⭐" : "☆"}
+        </button>
       </div>
       <div className="p-3 flex-1 flex flex-col gap-1">
         <p className="text-xs text-muted truncate">{title || "Unknown set"}</p>

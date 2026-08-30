@@ -6,8 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
-
-const FEATURED_SPORT_KEY = "beefynukes:featuredSport";
+import { getFeaturedIds, onFeaturedChange } from "@/lib/featured";
 
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the
@@ -56,18 +55,24 @@ function LibraryPageInner() {
   const [autoOnly, setAutoOnly] = useState(searchParams.get("auto") === "1");
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
   const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
-  const [featuredSport, setFeaturedSport] = useState<string | null>(null);
+  const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "1");
 
-  // A bare "/" visit (no ?sport= at all) lands on the featured sport instead
-  // of "All", if one's been set — read once on mount, client-only since
-  // localStorage isn't available during server rendering. Any URL that
-  // already carries a sport (a filtered view restored via back-navigation,
-  // or one clicked within this session) is left alone; only a genuinely
-  // fresh load without an explicit filter falls back to the featured one.
+  // A bare "/" visit (no filters in the URL at all) opens straight to
+  // Featured, if any cards have been marked — read once on mount,
+  // client-only since localStorage isn't available during server
+  // rendering. Any URL that already carries an explicit filter (a
+  // restored view via back-navigation, or one clicked this session) is
+  // left alone; only a genuinely fresh load with nothing set falls back
+  // to Featured.
   useEffect(() => {
-    const saved = localStorage.getItem(FEATURED_SPORT_KEY);
-    if (saved) setFeaturedSport(saved);
-    if (saved && !searchParams.get("sport")) setSportFilter(saved);
+    const hasAnyFilter =
+      searchParams.get("sport") ||
+      searchParams.get("graded") ||
+      searchParams.get("auto") ||
+      searchParams.get("patch") ||
+      searchParams.get("numbered") ||
+      searchParams.get("featured");
+    if (!hasAnyFilter && getFeaturedIds().length > 0) setFeaturedOnly(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,9 +84,10 @@ function LibraryPageInner() {
     if (autoOnly) params.set("auto", "1");
     if (patchOnly) params.set("patch", "1");
     if (numberedOnly) params.set("numbered", "1");
+    if (featuredOnly) params.set("featured", "1");
     const query = params.toString();
     router.replace(query ? `/?${query}` : "/", { scroll: false });
-  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, router]);
+  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, router]);
 
   useEffect(() => {
     fetch("/api/library")
@@ -118,6 +124,10 @@ function LibraryPageInner() {
   const autoCount = sportFilteredCards.filter((c) => c.isAutograph).length;
   const patchCount = sportFilteredCards.filter(isPatchCard).length;
   const numberedCount = sportFilteredCards.filter(isNumberedCard).length;
+  const [featuredVersion, setFeaturedVersion] = useState(0);
+  useEffect(() => onFeaturedChange(() => setFeaturedVersion((v) => v + 1)), []);
+  const featuredIds = useMemo(() => new Set(getFeaturedIds()), [featuredVersion]);
+  const featuredCount = sportFilteredCards.filter((c) => featuredIds.has(c.id)).length;
 
   const filteredCards = useMemo(() => {
     return sportFilteredCards.filter((c) => {
@@ -125,9 +135,10 @@ function LibraryPageInner() {
       if (autoOnly && !c.isAutograph) return false;
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
+      if (featuredOnly && !featuredIds.has(c.id)) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, featuredIds]);
 
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
@@ -198,29 +209,17 @@ function LibraryPageInner() {
             </button>
           ))}
 
-          {sportFilter && (
-            <button
-              onClick={() => {
-                if (featuredSport === sportFilter) {
-                  localStorage.removeItem(FEATURED_SPORT_KEY);
-                  setFeaturedSport(null);
-                } else {
-                  localStorage.setItem(FEATURED_SPORT_KEY, sportFilter);
-                  setFeaturedSport(sportFilter);
-                }
-              }}
-              title={
-                featuredSport === sportFilter
-                  ? `${sportFilter} is your default homepage view — click to clear`
-                  : `Make ${sportFilter} your default homepage view`
-              }
-              className="px-2 py-1.5 rounded-full text-sm transition-colors hover:bg-surface-2 text-muted hover:text-foreground"
-            >
-              {featuredSport === sportFilter ? "★" : "☆"}
-            </button>
-          )}
-
           <span className="w-px self-stretch bg-border mx-1" />
+
+          <button
+            onClick={() => setFeaturedOnly((v) => !v)}
+            title="Cards you've starred as Featured — open a card and click the star to add one"
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              featuredOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            ⭐ Featured ({featuredCount})
+          </button>
 
           <button
             onClick={() => setGradedOnly((v) => !v)}
