@@ -424,10 +424,22 @@ export async function getValuation(
   const sortedSales = [...match.sales].sort((a, b) => (a.date < b.date ? 1 : -1));
   const careerStats = await getCareerStats(match.player, match.sport);
 
+  // A population count is specific to one exact grade at one exact grading
+  // company — it says nothing meaningful about a raw card, and it's wrong
+  // (not just imprecise) for a card graded differently than the matched
+  // comp. Only carry it through when the user's own card is graded at
+  // exactly the same company+grade the population figure actually
+  // describes; otherwise a raw Ken Griffey Jr. rookie was showing an "SGC 9"
+  // population report that had nothing to do with the raw copy in hand.
+  const populationMatchesIdentity =
+    match.population &&
+    identity.gradingCompany === match.population.gradingCompany &&
+    identity.grade === match.population.grade;
+
   return {
     valuation,
     sales: sortedSales,
-    population: match.population,
+    population: populationMatchesIdentity ? match.population : null,
     trending: computeTrending(trend, trendPercent, sortedSales, careerStats, match.hallOfFameChance, 0, match.sport),
   };
 }
