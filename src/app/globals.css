@@ -35,3 +35,29 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+@keyframes dice-roll {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  20% {
+    transform: rotate(-20deg) scale(1.15);
+  }
+  40% {
+    transform: rotate(15deg) scale(1.1);
+  }
+  60% {
+    transform: rotate(-12deg) scale(1.15);
+  }
+  80% {
+    transform: rotate(8deg) scale(1.05);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.animate-dice-roll {
+  display: inline-block;
+  animation: dice-roll 0.5s ease-in-out infinite;
+}

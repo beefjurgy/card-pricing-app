@@ -6,6 +6,17 @@ import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 
+// There's no dedicated structured field for "this is a memorabilia/relic
+// card" (unlike isAutograph), so this checks the same free-text fields the
+// identify step already fills in — parallel and set name reliably mention
+// "Relic"/"Patch"/"Jersey"/"Memorabilia"/"Swatch" for these cards, the same
+// way a title reliably mentions "auto" elsewhere in this app.
+const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch"];
+function isPatchCard(card: LibraryCard): boolean {
+  const text = `${card.parallel} ${card.setName}`.toLowerCase();
+  return PATCH_KEYWORDS.some((kw) => text.includes(kw));
+}
+
 export default function LibraryPage() {
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [error, setError] = useState(false);
@@ -14,6 +25,7 @@ export default function LibraryPage() {
   const [sportFilter, setSportFilter] = useState<string | null>(null);
   const [gradedOnly, setGradedOnly] = useState(false);
   const [autoOnly, setAutoOnly] = useState(false);
+  const [patchOnly, setPatchOnly] = useState(false);
 
   useEffect(() => {
     fetch("/api/library")
@@ -48,14 +60,16 @@ export default function LibraryPage() {
 
   const gradedCount = sportFilteredCards.filter((c) => c.gradingCompany && c.grade).length;
   const autoCount = sportFilteredCards.filter((c) => c.isAutograph).length;
+  const patchCount = sportFilteredCards.filter(isPatchCard).length;
 
   const filteredCards = useMemo(() => {
     return sportFilteredCards.filter((c) => {
       if (gradedOnly && !(c.gradingCompany && c.grade)) return false;
       if (autoOnly && !c.isAutograph) return false;
+      if (patchOnly && !isPatchCard(c)) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly]);
 
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
@@ -74,6 +88,7 @@ export default function LibraryPage() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4">
         <h1 className="text-3xl font-bold tracking-tight">My Nukes</h1>
+        <p className="text-muted text-sm italic mt-1">Everything you want to know about your collection.</p>
         <p className="text-muted text-sm mt-1">
           {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
           {cards && filteredCards.length > 0 && (
@@ -143,6 +158,14 @@ export default function LibraryPage() {
             }`}
           >
             ✍️ Auto ({autoCount})
+          </button>
+          <button
+            onClick={() => setPatchOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              patchOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            🧵 Patch ({patchCount})
           </button>
 
           <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap sm:ml-auto">

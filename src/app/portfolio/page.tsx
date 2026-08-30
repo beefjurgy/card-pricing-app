@@ -96,7 +96,6 @@ export default function PortfolioPage() {
             <div>
               <p className="text-xs text-muted uppercase tracking-wide">Full Collection Value</p>
               <p className="text-2xl font-bold text-accent">{formatUsd(fullCollectionValue)}</p>
-              <p className="text-xs text-muted mt-0.5">Same as the library page — every card</p>
             </div>
           </div>
 

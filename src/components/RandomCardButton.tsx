@@ -13,10 +13,16 @@ export function RandomCardButton() {
 
   async function roll() {
     setRolling(true);
+    const start = Date.now();
+    // A minimum on-screen time for the roll animation — without it, a fast
+    // response could navigate away before the wiggle even finishes one cycle.
+    const minDurationMs = 500;
     try {
       const res = await fetch("/api/library");
       const data = await res.json();
       const cards = data.cards as LibraryCard[] | undefined;
+      const elapsed = Date.now() - start;
+      if (elapsed < minDurationMs) await new Promise((resolve) => setTimeout(resolve, minDurationMs - elapsed));
       if (cards && cards.length > 0) {
         const pick = cards[Math.floor(Math.random() * cards.length)];
         router.push(`/card/${pick.id}`);
@@ -35,7 +41,7 @@ export function RandomCardButton() {
       aria-label="Show me a random card"
       className="px-3 py-2 rounded-md text-muted hover:text-foreground hover:bg-surface-2 transition-colors disabled:opacity-40 text-lg leading-none"
     >
-      {rolling ? "🎲🎲…" : "🎲🎲"}
+      <span className={rolling ? "animate-dice-roll" : ""}>🎲🎲</span>
     </button>
   );
 }
