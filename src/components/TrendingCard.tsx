@@ -13,7 +13,7 @@ export function TrendingCard({ trending }: { trending: TrendingSignal }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="flex items-center justify-between mb-3">
-        <SectionHeading>Stats</SectionHeading>
+        <SectionHeading>At a Glance</SectionHeading>
         {style && trending.label && (
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${style.className}`}>
             {style.emoji} {trending.label}
