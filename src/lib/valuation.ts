@@ -199,8 +199,20 @@ function extractParallelName(parallel: string): string {
   return parallel.replace(/\/\d{1,4}\b/, "").trim();
 }
 
+// A bare substring check isn't enough — many products have several distinct
+// parallels that all start with the same base color/name, at very different
+// values (e.g. "Green", "Green Disco", "Green Shimmer" are three different
+// parallels of the same insert). A genuine match ends at the identity's own
+// parallel name — the card number, a print run, punctuation, or the end of
+// the title comes next, not another qualifying word. This is exactly how a
+// real $20 "Aspirations Green /399" listing once got diluted down to $4 by
+// "Green Disco" listings (a different, far more common parallel) that
+// shared nothing with it but the word "Green".
 function titleMentionsParallelName(title: string, parallelName: string): boolean {
-  return parallelName.length > 0 && normalize(title).includes(normalize(parallelName));
+  const trimmed = parallelName.trim();
+  if (!trimmed) return false;
+  const pattern = new RegExp(`\\b${escapeRegExp(trimmed)}\\b(?!\\s*[a-zA-Z])`, "i");
+  return pattern.test(title);
 }
 
 // Unlike print run or set name, sellers ALWAYS call out an autograph in the
