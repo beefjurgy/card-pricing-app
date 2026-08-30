@@ -40,14 +40,22 @@ export function ValuationCard({
   onRefresh: (card: LibraryCard) => void;
 }) {
   const [refreshing, setRefreshing] = useState(false);
+  const [confirmingOverride, setConfirmingOverride] = useState(false);
   const protectedValuation = isProtectedValuation(valuation.note);
 
-  async function refresh() {
+  async function refresh(force = false) {
     setRefreshing(true);
     try {
-      const res = await fetch(`/api/library/${cardId}/refresh-valuation`, { method: "POST" });
+      const res = await fetch(`/api/library/${cardId}/refresh-valuation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force }),
+      });
       const data = await res.json();
-      if (data.card) onRefresh(data.card);
+      if (data.card) {
+        onRefresh(data.card);
+        setConfirmingOverride(false);
+      }
     } finally {
       setRefreshing(false);
     }
@@ -65,15 +73,36 @@ export function ValuationCard({
             {confidenceLabel[valuation.confidence]}
           </span>
           {protectedValuation ? (
-            <span
-              className="text-xs text-background/50 whitespace-nowrap"
-              title="Manually verified from a real sold comp — protected from automatic refresh"
-            >
-              🔒 Protected
-            </span>
+            confirmingOverride ? (
+              <div className="flex items-center gap-2 text-xs whitespace-nowrap">
+                <span className="text-background/70">Replace with a fresh estimate?</span>
+                <button
+                  onClick={() => setConfirmingOverride(false)}
+                  disabled={refreshing}
+                  className="text-background/70 hover:text-background transition-colors disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => refresh(true)}
+                  disabled={refreshing}
+                  className="text-background font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
+                >
+                  {refreshing ? "Replacing…" : "Replace"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingOverride(true)}
+                className="text-xs text-background/70 hover:text-background transition-colors whitespace-nowrap"
+                title="This price came from a real sale you verified — click to replace it with a fresh automatic estimate instead"
+              >
+                ✓ Verified by you
+              </button>
+            )
           ) : (
             <button
-              onClick={refresh}
+              onClick={() => refresh()}
               disabled={refreshing}
               className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
             >

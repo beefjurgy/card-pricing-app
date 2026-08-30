@@ -142,9 +142,20 @@ function CardDetailPageInner() {
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
       <div className="flex items-center justify-between gap-3">
-        <Link href="/" className="text-muted hover:text-foreground text-sm">
+        <button
+          onClick={() => {
+            // Prefer real browser back — it returns to wherever the user
+            // actually came from (a filtered/sorted library view, another
+            // card's "More from this player" list, etc.) instead of always
+            // dropping back to the unfiltered full library. Only a direct
+            // page load (no history to go back to) falls through to "/".
+            if (window.history.length > 1) router.back();
+            else router.push("/");
+          }}
+          className="text-muted hover:text-foreground text-sm"
+        >
           ← Nukes
-        </Link>
+        </button>
 
         {neighbors && neighbors.total > 1 && (
           <div className="flex items-center gap-2 text-sm">
