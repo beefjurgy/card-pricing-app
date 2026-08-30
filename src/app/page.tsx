@@ -18,6 +18,13 @@ function isPatchCard(card: LibraryCard): boolean {
   return PATCH_KEYWORDS.some((kw) => text.includes(kw));
 }
 
+// A serial-numbered parallel prints its own run directly on the card
+// ("086/150"), and that run reliably ends up in the stored parallel field
+// (e.g. "Purple /150") — same signal valuation.ts's extractPrintRun reads.
+function isNumberedCard(card: LibraryCard): boolean {
+  return /\/\d{1,4}\b/.test(card.parallel);
+}
+
 export default function LibraryPage() {
   return (
     <Suspense>
@@ -46,6 +53,7 @@ function LibraryPageInner() {
   const [gradedOnly, setGradedOnly] = useState(searchParams.get("graded") === "1");
   const [autoOnly, setAutoOnly] = useState(searchParams.get("auto") === "1");
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
+  const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -54,9 +62,10 @@ function LibraryPageInner() {
     if (gradedOnly) params.set("graded", "1");
     if (autoOnly) params.set("auto", "1");
     if (patchOnly) params.set("patch", "1");
+    if (numberedOnly) params.set("numbered", "1");
     const query = params.toString();
     router.replace(query ? `/?${query}` : "/", { scroll: false });
-  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, router]);
+  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, router]);
 
   useEffect(() => {
     fetch("/api/library")
@@ -92,15 +101,17 @@ function LibraryPageInner() {
   const gradedCount = sportFilteredCards.filter((c) => c.gradingCompany && c.grade).length;
   const autoCount = sportFilteredCards.filter((c) => c.isAutograph).length;
   const patchCount = sportFilteredCards.filter(isPatchCard).length;
+  const numberedCount = sportFilteredCards.filter(isNumberedCard).length;
 
   const filteredCards = useMemo(() => {
     return sportFilteredCards.filter((c) => {
       if (gradedOnly && !(c.gradingCompany && c.grade)) return false;
       if (autoOnly && !c.isAutograph) return false;
       if (patchOnly && !isPatchCard(c)) return false;
+      if (numberedOnly && !isNumberedCard(c)) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly]);
 
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
@@ -196,6 +207,14 @@ function LibraryPageInner() {
             }`}
           >
             🧵 Patch ({patchCount})
+          </button>
+          <button
+            onClick={() => setNumberedOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              numberedOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            🔢 Numbered ({numberedCount})
           </button>
         </div>
       )}
