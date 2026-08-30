@@ -61,7 +61,7 @@ export default function VocabularyPage() {
         ← Nukes
       </Link>
 
-      <h1 className="text-3xl font-bold tracking-tight mt-4">Hobby Vocabulary</h1>
+      <h1 className="text-3xl font-bold tracking-tight mt-4">Lingo</h1>
       <p className="text-muted text-sm mt-1">Collector slang you'll run into while ripping, breaking, and grail-hunting.</p>
 
       <div className="mt-8 space-y-6">

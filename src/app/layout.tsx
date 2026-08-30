@@ -64,7 +64,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
           <p>
             <Link href="/vocabulary" className="hover:text-foreground hover:underline">
-              Hobby Vocabulary
+              Lingo
             </Link>
           </p>
         </footer>
