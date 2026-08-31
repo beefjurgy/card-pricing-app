@@ -57,6 +57,8 @@ export async function POST(req: NextRequest) {
     purchaseDate,
     purchasePlatform,
     isFeatured: false,
+    description: null,
+    descriptionVoice: null,
   };
 
   await addCard(card);

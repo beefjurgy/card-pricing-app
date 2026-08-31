@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CardIdentity } from "@/lib/types";
+import { CardIdentity, LibraryCard } from "@/lib/types";
 import { SectionHeading } from "./SectionHeading";
 
 type Voice = "simmons" | "berman" | "madden" | "costas";
@@ -13,12 +13,24 @@ const VOICE_LABELS: Record<Voice, string> = {
   costas: "Costas",
 };
 
-export function CardDescription({ identity }: { identity: CardIdentity }) {
-  const [description, setDescription] = useState<string | null>(null);
+export function CardDescription({
+  identity,
+  cardId,
+  savedDescription,
+  savedVoice,
+  onUpdate,
+}: {
+  identity: CardIdentity;
+  cardId: string;
+  savedDescription: string | null;
+  savedVoice: Voice | null;
+  onUpdate: (card: LibraryCard) => void;
+}) {
+  const [description, setDescription] = useState<string | null>(savedDescription);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [needsApiKey, setNeedsApiKey] = useState(false);
-  const [voice, setVoice] = useState<Voice>("simmons");
+  const [voice, setVoice] = useState<Voice>(savedVoice ?? "simmons");
 
   async function generate() {
     setLoading(true);
@@ -32,11 +44,24 @@ export function CardDescription({ identity }: { identity: CardIdentity }) {
       const data = await res.json();
       if (data.needsApiKey) {
         setNeedsApiKey(true);
-      } else if (data.error) {
-        setError(data.error);
-      } else {
-        setDescription(data.description);
+        return;
       }
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+      setDescription(data.description);
+
+      // Persist immediately so it's still there on the next visit — a
+      // generated blurb the user liked shouldn't vanish on refresh just
+      // because it only ever lived in component state.
+      const patchRes = await fetch(`/api/library/${cardId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: data.description, descriptionVoice: voice }),
+      });
+      const patchData = await patchRes.json();
+      if (patchData.card) onUpdate(patchData.card);
     } catch {
       setError("Could not reach the description generator.");
     } finally {

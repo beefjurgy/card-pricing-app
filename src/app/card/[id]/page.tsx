@@ -340,7 +340,13 @@ function CardDetailPageInner() {
 
           <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} />
 
-          <CardDescription identity={card} />
+          <CardDescription
+            identity={card}
+            cardId={card.id}
+            savedDescription={card.description}
+            savedVoice={card.descriptionVoice}
+            onUpdate={setCard}
+          />
 
           <PurchaseInfo card={card} onUpdate={setCard} />
 
