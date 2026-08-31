@@ -15,6 +15,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: NeonHttpAdapter(),
   session: { strategy: "database" },
   providers: [Google],
+  // Auth.js is conservative by default about trusting the request's host
+  // header when constructing OAuth redirect/callback URLs — needed here
+  // since this runs behind Vercel's proxy rather than a bare Node server.
+  trustHost: true,
   callbacks: {
     async signIn({ profile }) {
       if (!OWNER_EMAIL) return false;
