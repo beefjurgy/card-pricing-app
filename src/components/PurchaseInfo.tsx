@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { LibraryCard } from "@/lib/types";
 
+const PLATFORM_OPTIONS = ["Whatnot", "eBay", "Facebook", "Store"];
+
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
@@ -72,12 +74,19 @@ export function PurchaseInfo({ card, onUpdate }: { card: LibraryCard; onUpdate: 
           </label>
           <label className="flex flex-col gap-1">
             Platform / Source
-            <input
+            <select
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
-              placeholder="e.g. eBay, card show"
               className="px-2.5 py-1.5 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none"
-            />
+            >
+              <option value="">—</option>
+              {platform && !PLATFORM_OPTIONS.includes(platform) && <option value={platform}>{platform}</option>}
+              {PLATFORM_OPTIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
         <div className="flex gap-2">

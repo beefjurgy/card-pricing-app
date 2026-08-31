@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CardIdentity, Sport } from "@/lib/types";
 
 const SPORTS: Sport[] = ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"];
+const PLATFORM_OPTIONS = ["Whatnot", "eBay", "Facebook", "Store"];
 
 const EMPTY_IDENTITY: CardIdentity = {
   player: "",
@@ -491,12 +492,18 @@ export default function ScanPage() {
               </label>
               <label className="flex flex-col gap-1 text-sm">
                 Platform / Source
-                <input
+                <select
                   value={purchasePlatform}
                   onChange={(e) => setPurchasePlatform(e.target.value)}
-                  placeholder="e.g. eBay, card show"
                   className="px-3 py-2 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none"
-                />
+                >
+                  <option value="">—</option>
+                  {PLATFORM_OPTIONS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
           </div>
