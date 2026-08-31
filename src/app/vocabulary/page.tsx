@@ -48,6 +48,11 @@ const TERMS: Term[] = [
       "Short for Rookie Patch Autograph — a rookie card that combines a jersey/patch swatch with the player's autograph. Widely considered one of the most desirable rookie card formats in the hobby.",
   },
   {
+    term: "SSP",
+    definition:
+      "Short for Super Short Print — a card printed in a much smaller quantity than the regular base set or even a standard short print (SP). SSPs are rarer than SPs and are prized for that scarcity, often driving significant premiums even when they're not autographed or numbered.",
+  },
+  {
     term: "Slabs / Slabbed",
     definition:
       "Slabbing is a synonym for grading. A slabbed card is a graded card. Refers to the hard plastic case (the \"slab\") that companies like PSA, BGS, or SGC seal a card in once it's graded.",
