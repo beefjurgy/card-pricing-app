@@ -123,10 +123,15 @@ function CardDetailPageInner() {
 
   // Same player, any other card in the library — not scoped to year/set/parallel,
   // since the point is just "what else do I have of this guy" at a glance.
+  // A multi-player card (e.g. "Aaron Judge / Greg Bird") is split on "/" so
+  // it shows up under either player's individual page too, not just an
+  // exact whole-string match against another dual-player card naming the
+  // exact same pair.
+  const splitPlayers = (name: string) => name.split("/").map((p) => p.trim().toLowerCase());
   const otherCards = useMemo(() => {
     if (!allCards || !card) return [];
-    const player = card.player.trim().toLowerCase();
-    return allCards.filter((c) => c.id !== card.id && c.player.trim().toLowerCase() === player);
+    const players = new Set(splitPlayers(card.player));
+    return allCards.filter((c) => c.id !== card.id && splitPlayers(c.player).some((p) => players.has(p)));
   }, [allCards, card]);
 
   async function handleDelete() {
