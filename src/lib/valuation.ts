@@ -223,6 +223,13 @@ const GENERIC_PARALLEL_WORDS = new Set([
   "swatch",
   "relic",
   "threads",
+  // "Card"/"RC" are universal rookie-card boilerplate, not a distinguishing
+  // parallel name — a plain "Rookie" identity was failing real listings
+  // titled "... Rookie Card ..." or "... Rookie RC ..." (i.e. almost all of
+  // them) purely because the word right after "Rookie" wasn't itself one of
+  // the words already recognized as generic.
+  "card",
+  "rc",
 ]);
 
 // A bare substring check isn't enough — many products have several distinct
@@ -260,8 +267,24 @@ function titleMentionsParallelName(title: string, parallelName: string): boolean
   if (words.length === 0) return true;
 
   if (words.length === 1) {
-    const pattern = new RegExp(`\\b${escapeRegExp(words[0])}\\b(?!\\s*[a-zA-Z])`, "i");
-    return pattern.test(title);
+    // The word immediately after the match matters: a genuinely different
+    // sibling parallel ("Green" vs "Green Disco") disqualifies the match,
+    // but real listings almost always pair a color/style word with its own
+    // product-line suffix ("Mojo Prizm", "Wave Refractor") — and that suffix
+    // is exactly the generic word this function already stripped out of the
+    // identity's own parallel name. Rejecting a match just because THAT word
+    // follows meant a real "MOJO Prizm ... SSP" listing (Prizm being
+    // generic) failed to match an identity of plain "Mojo Prizm", the same
+    // way "Rookie Card"/"Rookie RC" fails a plain "Rookie" identity — a
+    // single remaining word is disqualified only by a genuinely different,
+    // non-generic word right after it, not by any word at all.
+    const regex = new RegExp(`\\b${escapeRegExp(words[0])}\\b(\\s+([a-zA-Z]+))?`, "gi");
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(title))) {
+      const nextWord = match[2];
+      if (!nextWord || GENERIC_PARALLEL_WORDS.has(nextWord.toLowerCase())) return true;
+    }
+    return false;
   }
   return words.every((w) => new RegExp(`\\b${escapeRegExp(w)}\\b`, "i").test(title));
 }
