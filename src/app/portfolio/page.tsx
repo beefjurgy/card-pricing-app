@@ -37,21 +37,25 @@ export default function PortfolioPage() {
 
   // Only cards with a recorded purchase price have a real cost basis — same
   // subset the library page's overall gain/loss percentage is built from.
-  // Ordered by when each card was added (a reliable timestamp every card
-  // has), running totals show how cumulative cost vs. cumulative current
-  // value have grown alongside each other as the collection was built.
+  // Ordered by when each card was actually bought (falling back to when it
+  // was added to the app if no purchase date was recorded), running totals
+  // show how cumulative cost vs. cumulative current value have grown
+  // alongside each other as the collection was actually built, not as it
+  // happened to get scanned in.
   const points = useMemo(() => {
     if (!cards) return [];
     const costBasisCards = cards.filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number");
-    const ordered = [...costBasisCards].sort((a, b) => (a.dateAdded < b.dateAdded ? -1 : 1));
+    const sortKey = (c: LibraryCard) => c.purchaseDate ?? c.dateAdded;
+    const ordered = [...costBasisCards].sort((a, b) => (sortKey(a) < sortKey(b) ? -1 : 1));
 
     let cumulativePaid = 0;
     let cumulativeValue = 0;
     return ordered.map((c) => {
       cumulativePaid += c.purchasePrice;
       cumulativeValue += c.valuation.estimate;
+      const displayDate = c.purchaseDate ? new Date(`${c.purchaseDate}T00:00:00`) : new Date(c.dateAdded);
       return {
-        date: new Date(c.dateAdded).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        date: displayDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
         player: c.player,
         paid: cumulativePaid,
         value: cumulativeValue,
@@ -77,7 +81,7 @@ export default function PortfolioPage() {
 
       <h1 className="text-3xl font-bold tracking-tight mt-4">Portfolio Over Time</h1>
       <p className="text-muted text-sm mt-1">
-        Cumulative cost vs. current estimated value, in the order cards were added to your collection.
+        Cumulative cost vs. current estimated value, in the order cards were bought.
       </p>
 
       {error && <p className="text-down text-sm mt-6">Couldn&apos;t load your library.</p>}
@@ -148,7 +152,7 @@ export default function PortfolioPage() {
                   formatter={(value, name) => [`$${Number(value).toLocaleString()}`, name]}
                   labelFormatter={(label, payload) => {
                     const player = payload?.[0]?.payload?.player;
-                    return player ? `${label} · added ${player}` : label;
+                    return player ? `${label} · bought ${player}` : label;
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 13 }} />
