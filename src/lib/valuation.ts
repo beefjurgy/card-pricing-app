@@ -250,7 +250,14 @@ function titleMentionsParallelName(title: string, parallelName: string): boolean
     // check regardless of content, silently zeroing out real comps down to
     // a modeled guess ($45 instead of the real ~$5 market).
     .filter((w) => w && /[a-z0-9]/i.test(w) && !GENERIC_PARALLEL_WORDS.has(w.toLowerCase()));
-  if (words.length === 0) return false;
+  // Every word was punctuation or generic (e.g. a plain "Base" parallel, or
+  // "Prizm" alone) — there's nothing left that actually distinguishes this
+  // parallel from any other, which is the same situation as having no
+  // parallel name at all. Treating that as a non-match instead silently
+  // failed every real listing for any plain "Base" card (one of the most
+  // common parallel values in the whole library) the moment its valuation
+  // was refreshed, dropping it to a much less accurate modeled guess.
+  if (words.length === 0) return true;
 
   if (words.length === 1) {
     const pattern = new RegExp(`\\b${escapeRegExp(words[0])}\\b(?!\\s*[a-zA-Z])`, "i");
