@@ -18,6 +18,14 @@ function isPatchCard(card: LibraryCard): boolean {
   return PATCH_KEYWORDS.some((kw) => text.includes(kw));
 }
 
+// Matches against the fields someone would actually type to find a card —
+// player is the common case, but brand/set/year/parallel let a query like
+// "prizm" or "2024" narrow things down too.
+function cardMatchesSearch(card: LibraryCard, query: string): boolean {
+  const haystack = `${card.player} ${card.brand} ${card.setName} ${card.year} ${card.parallel}`.toLowerCase();
+  return haystack.includes(query);
+}
+
 // A serial-numbered parallel prints its own run directly on the card
 // ("086/150"), and that run reliably ends up in the stored parallel field
 // (e.g. "Purple /150") — same signal valuation.ts's extractPrintRun reads.
@@ -55,6 +63,7 @@ function LibraryPageInner() {
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
   const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "1");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
 
   // A bare "/" visit (no filters in the URL at all) opens straight to
   // Featured, if any cards have been marked — deferred until the cards
@@ -75,7 +84,8 @@ function LibraryPageInner() {
       searchParams.get("auto") ||
       searchParams.get("patch") ||
       searchParams.get("numbered") ||
-      searchParams.get("featured");
+      searchParams.get("featured") ||
+      searchParams.get("q");
     if (!hasAnyFilter && cards.some((c) => c.isFeatured)) setFeaturedOnly(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cards]);
@@ -89,9 +99,10 @@ function LibraryPageInner() {
     if (patchOnly) params.set("patch", "1");
     if (numberedOnly) params.set("numbered", "1");
     if (featuredOnly) params.set("featured", "1");
+    if (searchQuery.trim()) params.set("q", searchQuery.trim());
     const query = params.toString();
     router.replace(query ? `/?${query}` : "/", { scroll: false });
-  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, router]);
+  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery, router]);
 
   useEffect(() => {
     fetch("/api/library")
@@ -131,15 +142,17 @@ function LibraryPageInner() {
   const featuredCount = sportFilteredCards.filter((c) => c.isFeatured).length;
 
   const filteredCards = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     return sportFilteredCards.filter((c) => {
       if (gradedOnly && !(c.gradingCompany && c.grade)) return false;
       if (autoOnly && !c.isAutograph) return false;
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
       if (featuredOnly && !c.isFeatured) return false;
+      if (query && !cardMatchesSearch(c, query)) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery]);
 
   function handleFeaturedChange(id: string, isFeatured: boolean) {
     setCards((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, isFeatured } : c)) : prev));
@@ -191,6 +204,19 @@ function LibraryPageInner() {
           )}
         </p>
       </div>
+
+      {cards && cards.length > 1 && (
+        <div className="relative mb-4 max-w-sm">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">🔍</span>
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search player, set, brand, year…"
+            className="w-full pl-9 pr-3 py-2 rounded-md bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted focus:border-accent-2 outline-none"
+          />
+        </div>
+      )}
 
       {cards && cards.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">
