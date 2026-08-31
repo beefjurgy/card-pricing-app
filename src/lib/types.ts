@@ -103,5 +103,5 @@ export interface LibraryCard extends CardIdentity {
   purchasePlatform: string | null;
   isFeatured: boolean;
   description: string | null;
-  descriptionVoice: "simmons" | "berman" | "madden" | "costas" | null;
+  descriptionVoice: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | null;
 }
