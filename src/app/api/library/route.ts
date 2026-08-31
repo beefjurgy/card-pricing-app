@@ -3,6 +3,8 @@ import { addCard, readLibrary } from "@/lib/library";
 import { imageKey, uploadImage } from "@/lib/storage";
 import { getValuation } from "@/lib/valuation";
 import { CardIdentity, LibraryCard } from "@/lib/types";
+import { auth } from "@/auth";
+import { redactForViewer } from "@/lib/ownership";
 
 export const runtime = "nodejs";
 
@@ -11,11 +13,17 @@ async function saveUpload(file: File, id: string, suffix: string): Promise<strin
 }
 
 export async function GET() {
+  const session = await auth();
   const cards = await readLibrary();
-  return NextResponse.json({ cards });
+  return NextResponse.json({ cards: cards.map((c) => redactForViewer(c, session?.user?.id)) });
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to add a card." }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const file = formData.get("image");
   const backFile = formData.get("backImage");
@@ -44,6 +52,7 @@ export async function POST(req: NextRequest) {
   const card: LibraryCard = {
     ...identity,
     id,
+    userId: session.user.id,
     imageUrl,
     backImageUrl,
     dateAdded: new Date().toISOString(),

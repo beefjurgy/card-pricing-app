@@ -34,10 +34,12 @@ export function ValuationCard({
   valuation,
   cardId,
   onRefresh,
+  canRefresh,
 }: {
   valuation: Valuation;
   cardId: string;
   onRefresh: (card: LibraryCard) => void;
+  canRefresh: boolean;
 }) {
   const [refreshing, setRefreshing] = useState(false);
   const [confirmingOverride, setConfirmingOverride] = useState(false);
@@ -72,7 +74,7 @@ export function ValuationCard({
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${confidenceColor[valuation.confidence]}`}>
             {confidenceLabel[valuation.confidence]}
           </span>
-          {protectedValuation ? (
+          {canRefresh && (protectedValuation ? (
             confirmingOverride ? (
               <div className="flex items-center gap-2 text-xs whitespace-nowrap">
                 <span className="text-background/70">Replace with a fresh estimate?</span>
@@ -108,7 +110,7 @@ export function ValuationCard({
             >
               {refreshing ? "Refreshing…" : "🔄 Refresh"}
             </button>
-          )}
+          ))}
         </div>
       </div>
 

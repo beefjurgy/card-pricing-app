@@ -21,12 +21,14 @@ export function CardDescription({
   savedDescription,
   savedVoice,
   onUpdate,
+  canEdit,
 }: {
   identity: CardIdentity;
   cardId: string;
   savedDescription: string | null;
   savedVoice: Voice | null;
   onUpdate: (card: LibraryCard) => void;
+  canEdit: boolean;
 }) {
   const [description, setDescription] = useState<string | null>(savedDescription);
   const [loading, setLoading] = useState(false);
@@ -71,32 +73,39 @@ export function CardDescription({
     }
   }
 
+  // A visitor who can't generate one and there's nothing saved yet has
+  // nothing to see here — skip the whole card rather than show an empty
+  // shell with controls they can't use.
+  if (!canEdit && !description) return null;
+
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="flex flex-wrap items-center justify-between mb-3 gap-3">
         <SectionHeading>Card Description</SectionHeading>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-full border border-border overflow-hidden text-xs">
-            {(Object.keys(VOICE_LABELS) as Voice[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setVoice(v)}
-                className={`px-2.5 py-1 transition-colors ${
-                  voice === v ? "bg-brand text-white" : "text-muted hover:bg-surface-2"
-                }`}
-              >
-                {VOICE_LABELS[v]}
-              </button>
-            ))}
+        {canEdit && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex rounded-full border border-border overflow-hidden text-xs">
+              {(Object.keys(VOICE_LABELS) as Voice[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setVoice(v)}
+                  className={`px-2.5 py-1 transition-colors ${
+                    voice === v ? "bg-brand text-white" : "text-muted hover:bg-surface-2"
+                  }`}
+                >
+                  {VOICE_LABELS[v]}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={generate}
+              disabled={loading}
+              className="text-xs px-3 py-1.5 rounded-full border border-border hover:bg-surface-2 transition-colors disabled:opacity-40 whitespace-nowrap"
+            >
+              {loading ? "Writing…" : description ? "🎲 Regenerate" : "✨ Generate"}
+            </button>
           </div>
-          <button
-            onClick={generate}
-            disabled={loading}
-            className="text-xs px-3 py-1.5 rounded-full border border-border hover:bg-surface-2 transition-colors disabled:opacity-40 whitespace-nowrap"
-          >
-            {loading ? "Writing…" : description ? "🎲 Regenerate" : "✨ Generate"}
-          </button>
-        </div>
+        )}
       </div>
 
       {needsApiKey && (
@@ -105,7 +114,7 @@ export function CardDescription({
         </p>
       )}
       {error && <p className="text-sm text-down">{error}</p>}
-      {!needsApiKey && !error && !description && !loading && (
+      {canEdit && !needsApiKey && !error && !description && !loading && (
         <p className="text-sm text-muted">Get a fun, AI-written blurb for this card.</p>
       )}
       {description && <p className="text-sm italic">&ldquo;{description}&rdquo;</p>}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { IDENTITY_TOOL } from "@/lib/identitySchema";
+import { auth } from "@/auth";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,11 @@ async function toImageBlock(file: File) {
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to identify a card." }, { status: 401 });
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCard, setValuationFields } from "@/lib/library";
 import { getValuation } from "@/lib/valuation";
 import { isProtectedValuation } from "@/lib/valuationProtection";
+import { auth } from "@/auth";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,11 @@ export const runtime = "nodejs";
 // client only sends it after an explicit confirm step) — protection guards
 // against an accidental overwrite, not against the collector's own choice.
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to refresh this card's valuation." }, { status: 401 });
+  }
+
   const { id } = await params;
   const card = await getCard(id);
   if (!card) return NextResponse.json({ error: "Not found" }, { status: 404 });

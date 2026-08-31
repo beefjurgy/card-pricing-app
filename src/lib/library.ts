@@ -11,6 +11,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 interface CardRow {
   id: string;
+  user_id: string | null;
   player: string;
   sport: string;
   year: string;
@@ -44,6 +45,7 @@ interface CardRow {
 function rowToCard(row: CardRow): LibraryCard {
   return {
     id: row.id,
+    userId: row.user_id,
     player: row.player,
     sport: row.sport as LibraryCard["sport"],
     year: row.year,
@@ -83,13 +85,13 @@ export async function readLibrary(): Promise<LibraryCard[]> {
 export async function addCard(card: LibraryCard): Promise<void> {
   await sql`
     INSERT INTO cards (
-      id, player, sport, year, brand, set_name, card_number, parallel,
+      id, user_id, player, sport, year, brand, set_name, card_number, parallel,
       grading_company, grade, cert_number, is_autograph, autograph_company, autograph_grade,
       image_url, back_image_url, date_added, identify_confidence, identify_notes,
       valuation, sales, population, trending,
       purchase_price, purchase_date, purchase_platform, is_featured, description, description_voice
     ) VALUES (
-      ${card.id}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel},
+      ${card.id}, ${card.userId}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel},
       ${card.gradingCompany}, ${card.grade}, ${card.certNumber}, ${card.isAutograph}, ${card.autographCompany}, ${card.autographGrade},
       ${card.imageUrl}, ${card.backImageUrl}, ${card.dateAdded}, ${card.identifyConfidence}, ${card.identifyNotes},
       ${JSON.stringify(card.valuation)}, ${JSON.stringify(card.sales)},

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 import { SortOption } from "@/lib/librarySort";
 import { valueEmoji } from "@/lib/valueEmoji";
@@ -22,6 +23,8 @@ export function CardTile({
 }) {
   const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
   const [saving, setSaving] = useState(false);
+  const { data: session } = useSession();
+  const isOwner = Boolean(session?.user?.id);
 
   async function toggleFeatured(e: React.MouseEvent) {
     e.preventDefault();
@@ -61,14 +64,16 @@ export function CardTile({
             ✍️
           </span>
         )}
-        <button
-          onClick={toggleFeatured}
-          disabled={saving}
-          title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-          className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-sm hover:bg-black/80 transition-colors disabled:opacity-50"
-        >
-          {card.isFeatured ? "⭐" : "☆"}
-        </button>
+        {isOwner && (
+          <button
+            onClick={toggleFeatured}
+            disabled={saving}
+            title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+            className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/60 border border-white/30 flex items-center justify-center text-sm hover:bg-black/80 transition-colors disabled:opacity-50"
+          >
+            {card.isFeatured ? "⭐" : "☆"}
+          </button>
+        )}
       </div>
       <div className="p-3 flex-1 flex flex-col gap-1">
         <p className="text-xs text-muted truncate">{title || "Unknown set"}</p>

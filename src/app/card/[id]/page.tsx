@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { LibraryCard } from "@/lib/types";
@@ -43,6 +44,8 @@ export default function CardDetailPage() {
 function CardDetailPageInner() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const { data: session } = useSession();
+  const isOwner = Boolean(session?.user?.id);
   const searchParamsSort = useSearchParams().get("sort");
   const sortBy: SortOption = isSortOption(searchParamsSort) ? searchParamsSort : "recent";
   const [card, setCard] = useState<LibraryCard | null | undefined>(undefined);
@@ -255,44 +258,45 @@ function CardDetailPageInner() {
             </div>
           )}
 
-          {confirmingDelete ? (
-            <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setConfirmingDelete(false)}
-                disabled={deleting}
-                className="flex-1 py-2 rounded-md border border-border text-muted hover:text-foreground transition-colors text-sm disabled:opacity-40"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 py-2 rounded-md bg-down/90 text-white hover:bg-down transition-colors text-sm disabled:opacity-40"
-              >
-                {deleting ? "Removing…" : "Confirm"}
-              </button>
-            </div>
-          ) : (
-            <div className="mt-4 flex items-center justify-end gap-2">
-              <button
-                onClick={toggleFeatured}
-                disabled={togglingFeatured}
-                aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
-              >
-                {card.isFeatured ? "⭐" : "☆"}
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(true)}
-                aria-label="Remove card"
-                title="Remove card"
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
-              >
-                🗑️
-              </button>
-            </div>
-          )}
+          {isOwner &&
+            (confirmingDelete ? (
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => setConfirmingDelete(false)}
+                  disabled={deleting}
+                  className="flex-1 py-2 rounded-md border border-border text-muted hover:text-foreground transition-colors text-sm disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 py-2 rounded-md bg-down/90 text-white hover:bg-down transition-colors text-sm disabled:opacity-40"
+                >
+                  {deleting ? "Removing…" : "Confirm"}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <button
+                  onClick={toggleFeatured}
+                  disabled={togglingFeatured}
+                  aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                  title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
+                >
+                  {card.isFeatured ? "⭐" : "☆"}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  aria-label="Remove card"
+                  title="Remove card"
+                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
         </div>
 
         <div className="space-y-6 min-w-0">
@@ -338,7 +342,7 @@ function CardDetailPageInner() {
             </div>
           </div>
 
-          <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} />
+          <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} canRefresh={isOwner} />
 
           <CardDescription
             identity={card}
@@ -346,9 +350,10 @@ function CardDetailPageInner() {
             savedDescription={card.description}
             savedVoice={card.descriptionVoice}
             onUpdate={setCard}
+            canEdit={isOwner}
           />
 
-          <PurchaseInfo card={card} onUpdate={setCard} />
+          {isOwner && <PurchaseInfo card={card} onUpdate={setCard} />}
 
           {card.trending && <TrendingCard trending={card.trending} />}
 

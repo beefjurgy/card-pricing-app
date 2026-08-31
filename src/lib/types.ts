@@ -89,6 +89,7 @@ export interface MarketEntry extends CardIdentity {
 
 export interface LibraryCard extends CardIdentity {
   id: string;
+  userId: string | null;
   imageUrl: string;
   backImageUrl: string | null;
   dateAdded: string;

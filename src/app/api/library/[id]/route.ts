@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteCard, getCard, updateCard } from "@/lib/library";
 import { LibraryCard } from "@/lib/types";
+import { auth } from "@/auth";
+import { redactForViewer } from "@/lib/ownership";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await auth();
   const card = await getCard(id);
   if (!card) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ card });
+  return NextResponse.json({ card: redactForViewer(card, session?.user?.id) });
 }
 
 // Only purchase info, the isFeatured toggle, and the generated description
@@ -15,6 +18,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 // narrow avoids this becoming a way to silently rewrite the card's
 // AI-identified fields or valuation out from under the rest of the app.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to edit this card." }, { status: 401 });
+  }
+
   const { id } = await params;
   const body = (await req.json()) as {
     purchasePrice?: number | null;
@@ -41,6 +49,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Sign in to delete this card." }, { status: 401 });
+  }
+
   const { id } = await params;
   const ok = await deleteCard(id);
   if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });

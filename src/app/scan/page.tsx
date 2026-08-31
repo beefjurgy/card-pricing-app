@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { CardIdentity, Sport } from "@/lib/types";
 
 const SPORTS: Sport[] = ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"];
@@ -59,6 +61,7 @@ async function compressImage(file: File, maxDimension = 1600, quality = 0.85): P
 
 export default function ScanPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
@@ -182,6 +185,23 @@ export default function ScanPage() {
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
         setIdentity((prev) => ({ ...prev, [key]: e.target.value })),
     };
+  }
+
+  if (status === "loading") return null;
+
+  if (!session) {
+    return (
+      <div className="mx-auto max-w-sm px-4 sm:px-6 py-24 text-center">
+        <h1 className="text-2xl font-bold tracking-tight">Sign in required</h1>
+        <p className="text-muted text-sm mt-2">Only the collection owner can add cards.</p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block px-4 py-2.5 rounded-md bg-brand text-white hover:opacity-90 transition-opacity"
+        >
+          Sign in
+        </Link>
+      </div>
+    );
   }
 
   return (
