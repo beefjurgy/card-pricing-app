@@ -318,6 +318,20 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
       return listingRun === identityRun;
     }
 
+    // The card has no print run at all, but this listing claims one — that's
+    // a real, separately-numbered sub-parallel of the same product line, not
+    // just a different description of the same card. This matters most when
+    // the identity's "parallel" is actually the whole edition's name (e.g.
+    // "Sapphire" for a Topps Chrome Sapphire Edition base card, the same way
+    // "Prizm" names a whole Panini product line) — nearly every listing in
+    // that edition mentions that word, including a numbered "Gold /50"
+    // insert that's a wildly different, much rarer card. A $450 Messi "Gold
+    // 23/50" listing once got averaged in as a comp for a plain unnumbered
+    // Sapphire base card purely because both listings said "Sapphire".
+    if (identityRun === null && listingRun !== null) {
+      return false;
+    }
+
     if (identityRun !== null || parallelName) {
       // No name to check against — this only happens for a bare numbered
       // parallel with no color/style name at all (e.g. "/50"); keep the
