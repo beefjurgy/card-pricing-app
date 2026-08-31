@@ -397,7 +397,7 @@ function CardDetailPageInner() {
 
           {otherCards.length > 0 && (
             <div>
-              <SectionHeading className="mb-3">More {card.player} cards in your collection</SectionHeading>
+              <SectionHeading className="mb-3">More From This Player</SectionHeading>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {otherCards.map((c) => (
                   <CardTile key={c.id} card={c} />
