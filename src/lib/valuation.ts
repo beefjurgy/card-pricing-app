@@ -465,7 +465,18 @@ export async function getValuation(
   identity: CardIdentity
 ): Promise<{ valuation: Valuation; sales: Sale[]; population: Population | null; trending: TrendingSignal | null }> {
   const match = findBestMatch(identity);
-  if (!match || match.sales.length === 0) {
+
+  // A raw copy and a graded copy of the same card are different products
+  // that can differ 2-3x in price for vintage rookies — the sample sold-comp
+  // database only has one grade tier per card (e.g. only SGC 9 sales for the
+  // 1989 Griffey UD #1), so matching on identity fields alone let a raw
+  // Griffey get priced off graded SGC 9 sold comps ($290-340) instead of the
+  // $80-250 raw copies actually sell for. Same raw-vs-graded split the eBay
+  // live-listing path already enforces; fall back to it here too so a
+  // mismatched-grade sample match doesn't get used as-is.
+  const identityIsGraded = Boolean(identity.gradingCompany && identity.grade);
+  const matchIsGraded = Boolean(match?.gradingCompany && match?.grade);
+  if (!match || match.sales.length === 0 || identityIsGraded !== matchIsGraded) {
     return fallbackValuation(identity);
   }
 
