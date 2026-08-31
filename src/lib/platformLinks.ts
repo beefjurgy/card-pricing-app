@@ -28,6 +28,23 @@ export function cardQueryBroad(card: QueryFields): string {
 // Trimming to the set name's first word alone matches how sellers actually
 // title these listings. Returns null when setName is already one word, since
 // that's identical to cardQueryBroad and not worth a third API call.
+// A setName joined with " / " (spaces required — this must not fire on a
+// tight slash like "2022/23" or "Chrome/Blaster Edition", which are single
+// tokens, not two candidate names) means the identification step recorded
+// two names for the same insert: a parent product name and a more
+// marketable subset name — e.g. "Rookie Exclusives / Preps to the Pros" or
+// "Future Force / 1992-93 Upper Deck". Which side sellers actually title
+// listings after varies card to card (sometimes the subset name comes
+// first, sometimes second), so rather than guessing, this returns one
+// broadest-tier query per side and lets both compete for real matches.
+export function cardQuerySplitCandidates(card: QueryFields): string[] {
+  const parts = card.setName.split(/\s+\/\s+/).map((s) => s.trim()).filter(Boolean);
+  if (parts.length <= 1) return [];
+  return parts.map((part) =>
+    [card.year, card.brand, part, card.cardNumber && `#${card.cardNumber}`, card.player].filter(Boolean).join(" ")
+  );
+}
+
 export function cardQueryBroadest(card: QueryFields): string | null {
   const setWords = card.setName.trim().split(/\s+/).filter(Boolean);
   if (setWords.length <= 1) return null;

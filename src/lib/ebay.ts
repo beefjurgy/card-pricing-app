@@ -145,12 +145,14 @@ export async function searchEbayListingsTiered(
   exactQuery: string,
   broadQuery: string,
   broadestQuery: string | null = null,
-  limit = 10
+  limit = 10,
+  extraQueries: string[] = []
 ): Promise<TieredEbaySearchResult> {
-  const [exact, broad, broadest] = await Promise.all([
+  const [exact, broad, broadest, ...extras] = await Promise.all([
     searchEbayListings(exactQuery, limit),
     searchEbayListings(broadQuery, limit),
     broadestQuery ? searchEbayListings(broadestQuery, limit) : Promise.resolve(null),
+    ...extraQueries.map((q) => searchEbayListings(q, limit)),
   ]);
 
   if (!exact.configured) {
@@ -161,7 +163,7 @@ export async function searchEbayListingsTiered(
   const exactTagged: TieredEbayListing[] = exact.listings.map((l) => ({ ...l, exactMatch: true }));
 
   const wider: TieredEbayListing[] = [];
-  for (const result of [broad, broadest]) {
+  for (const result of [broad, broadest, ...extras]) {
     if (!result || result.error) continue;
     for (const l of result.listings) {
       if (seen.has(l.itemId)) continue;

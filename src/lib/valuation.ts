@@ -3,7 +3,7 @@ import { CardIdentity, MarketEntry, Population, Sale, TrendingSignal, Valuation 
 import { computeTrending } from "./trending";
 import { getCareerStats } from "./careerStats";
 import { searchEbayListingsTiered } from "./ebay";
-import { cardQuery, cardQueryBroad, cardQueryBroadest } from "./platformLinks";
+import { cardQuery, cardQueryBroad, cardQueryBroadest, cardQuerySplitCandidates } from "./platformLinks";
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
@@ -281,7 +281,13 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   // miss real listings of the same base card even when it finds something.
   // Always merge in the broader same-base-card search rather than only
   // falling back to it when the exact query comes up completely empty.
-  const result = await searchEbayListingsTiered(cardQuery(identity), cardQueryBroad(identity), cardQueryBroadest(identity));
+  const result = await searchEbayListingsTiered(
+    cardQuery(identity),
+    cardQueryBroad(identity),
+    cardQueryBroadest(identity),
+    10,
+    cardQuerySplitCandidates(identity)
+  );
 
   // Drop listings that explicitly claim a different print run than this
   // card's — a /50 parallel and a /75 parallel are different products even
