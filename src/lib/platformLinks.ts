@@ -46,6 +46,15 @@ export function cardQuerySplitCandidates(card: QueryFields): string[] {
 }
 
 export function cardQueryBroadest(card: QueryFields): string | null {
+  // A "/"-joined setName is handled by cardQuerySplitCandidates above, which
+  // tries each real candidate name on its own. Falling through to this
+  // function's plain first-word split instead would take the first word of
+  // the WHOLE combined string (e.g. "Rookie" out of "Rookie Exclusives /
+  // Preps to the Pros") — a query so loose ("Rookie" + card number + player)
+  // that it pulled in entirely different same-numbered inserts from the same
+  // release ("Phenomenal Beginning", "Lebron's Diary") as if they were the
+  // same product, once the split candidates started finding real matches.
+  if (/\s+\/\s+/.test(card.setName)) return null;
   const setWords = card.setName.trim().split(/\s+/).filter(Boolean);
   if (setWords.length <= 1) return null;
   return [card.year, card.brand, setWords[0], card.cardNumber && `#${card.cardNumber}`, card.player]
