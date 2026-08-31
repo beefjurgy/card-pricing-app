@@ -10,12 +10,14 @@ import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/libraryS
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the
 // identify step already fills in — parallel and set name reliably mention
-// "Relic"/"Patch"/"Jersey"/"Memorabilia"/"Swatch" for these cards, the same
-// way a title reliably mentions "auto" elsewhere in this app.
-const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch"];
+// "Relic"/"Patch"/"Jersey"/"Memorabilia"/"Swatch"/"(MEM)" for these cards,
+// the same way a title reliably mentions "auto" elsewhere in this app.
+// Word-boundary matching (not a plain substring) so "mem" doesn't also
+// catch an unrelated word like a "Memphis" team reference.
+const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "threads"];
 function isPatchCard(card: LibraryCard): boolean {
   const text = `${card.parallel} ${card.setName}`.toLowerCase();
-  return PATCH_KEYWORDS.some((kw) => text.includes(kw));
+  return PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(text));
 }
 
 // Matches against the fields someone would actually type to find a card —

@@ -203,7 +203,27 @@ function extractParallelName(parallel: string): string {
 // "Prizm"/"Refractor" describe the whole product, not one specific parallel
 // within it) that requiring them would create false negatives against real
 // sellers who drop them, without adding any real specificity of their own.
-const GENERIC_PARALLEL_WORDS = new Set(["prizm", "refractor", "parallel", "insert", "base"]);
+// The memorabilia/swatch terms belong here for the same reason but a
+// different cause: sellers describe the exact same physical feature with
+// wildly different words ("Memorabilia", "Jersey", "Jerseys", "MEM",
+// "Patch", "Swatch", "Player-Worn") — requiring the identity's specific
+// choice of word verbatim (e.g. "Memorabilia") failed every single real
+// listing for a card, none of which happened to use that literal word.
+const GENERIC_PARALLEL_WORDS = new Set([
+  "prizm",
+  "refractor",
+  "parallel",
+  "insert",
+  "base",
+  "memorabilia",
+  "jersey",
+  "jerseys",
+  "mem",
+  "patch",
+  "swatch",
+  "relic",
+  "threads",
+]);
 
 // A bare substring check isn't enough — many products have several distinct
 // parallels that all start with the same base color/name, at very different
@@ -222,7 +242,14 @@ function titleMentionsParallelName(title: string, parallelName: string): boolean
   const words = parallelName
     .split(/\s+/)
     .map((w) => w.trim())
-    .filter((w) => w && !GENERIC_PARALLEL_WORDS.has(w.toLowerCase()));
+    // A standalone punctuation token (e.g. "&" out of "Home & Away") can
+    // never satisfy a \b...\b word-boundary check on its own — both of its
+    // neighbors are typically non-word characters (spaces) too, so the
+    // boundary the regex looks for never occurs. Requiring it anyway meant
+    // every listing for a real "Home & Away Memorabilia" card failed this
+    // check regardless of content, silently zeroing out real comps down to
+    // a modeled guess ($45 instead of the real ~$5 market).
+    .filter((w) => w && /[a-z0-9]/i.test(w) && !GENERIC_PARALLEL_WORDS.has(w.toLowerCase()));
   if (words.length === 0) return false;
 
   if (words.length === 1) {
