@@ -46,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   <span className="text-xl font-bold tracking-tight">
                     Beefy<span className="text-brand">Nukes</span>
                   </span>
-                  <span className="hidden sm:inline text-xs text-muted italic">
+                  <span className="hidden sm:inline text-xs text-muted">
                     Everything you want to know about your collection.
                   </span>
                 </span>
