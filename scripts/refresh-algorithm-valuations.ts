@@ -41,6 +41,7 @@ async function main() {
       setName: row.set_name,
       cardNumber: row.card_number,
       parallel: row.parallel,
+      otherDetails: "",
       gradingCompany: row.grading_company,
       grade: row.grade,
       certNumber: "",
