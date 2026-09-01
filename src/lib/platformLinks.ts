@@ -62,16 +62,16 @@ export function cardQueryBroadest(card: QueryFields): string | null {
     .join(" ");
 }
 
-// Trading Card Database (tcdb.com) — a community-maintained checklist
-// database covering nearly every sports/trading card set ever released,
-// far more complete than manufacturer sites (which rarely keep release
-// info around for older or niche products). Its own search form isn't
-// reliable enough to deep-link into directly, so this scopes a normal web
-// search to the site instead, same pattern as the SITE_DOMAINS fallback
-// below. Uses the broad query (no parallel) since that's the set-level
-// info TCDB actually organizes by.
+// A site:tcdb.com-scoped search (the original approach here) guarantees a
+// dead end — a blank "no results" page — for any set TCDB hasn't indexed
+// yet, which happens often for brand-new releases and niche/non-sport
+// products. Dropping the site restriction means Google can surface TCDB
+// when it has the set, or any other real checklist/set-info page when it
+// doesn't, instead of a guaranteed empty result. Uses the broad query (no
+// parallel) since that's the set-level info being looked for, plus a
+// "checklist" keyword to bias results toward set-info pages specifically.
 export function getSetInfoUrl(card: QueryFields): string {
-  const query = `site:tcdb.com ${cardQueryBroad(card)}`;
+  const query = `${cardQueryBroad(card)} checklist`;
   return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 }
 
