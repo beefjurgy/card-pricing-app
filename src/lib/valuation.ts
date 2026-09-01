@@ -2,7 +2,7 @@ import { MARKET_DATABASE } from "./mockSales";
 import { CardIdentity, MarketEntry, Population, Sale, TrendingSignal, Valuation } from "./types";
 import { computeTrending } from "./trending";
 import { getCareerStats } from "./careerStats";
-import { searchEbayListingsTiered } from "./ebay";
+import { searchEbayListings, searchEbayListingsTiered, TieredEbayListing } from "./ebay";
 import { cardQuery, cardQueryBroad, cardQueryBroadest, cardQuerySplitCandidates } from "./platformLinks";
 
 function median(values: number[]): number {
@@ -305,20 +305,14 @@ function titleAutographMismatch(title: string, isAutograph: boolean): boolean {
   return titleIndicatesAutograph(title) !== isAutograph;
 }
 
-async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; broadMatch: boolean }> {
-  // Sellers describe parallels/variants inconsistently (e.g. "Wave Refractor"
-  // vs "Raywave" for the same print run), so an exact-text search alone can
-  // miss real listings of the same base card even when it finds something.
-  // Always merge in the broader same-base-card search rather than only
-  // falling back to it when the exact query comes up completely empty.
-  const result = await searchEbayListingsTiered(
-    cardQuery(identity),
-    cardQueryBroad(identity),
-    cardQueryBroadest(identity),
-    10,
-    cardQuerySplitCandidates(identity)
-  );
-
+// Shared by both the normal tiered search and the last-resort loose search
+// below — same identity-corroboration rules apply regardless of how the
+// listings were found, so a loose query can't skip the checks that keep a
+// completely different product from being averaged in as a comp.
+function extractPricesFromListings(
+  identity: CardIdentity,
+  listings: TieredEbayListing[]
+): { prices: number[]; broadMatch: boolean } {
   // Drop listings that explicitly claim a different print run than this
   // card's — a /50 parallel and a /75 parallel are different products even
   // when both share words like "Gold Etch". A listing that doesn't mention a
@@ -339,7 +333,7 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   // get diluted by every other named parallel of the same insert.
   const identityRun = extractPrintRun(identity.parallel);
   const parallelName = extractParallelName(identity.parallel);
-  const runMatched = result.listings.filter((l) => {
+  const runMatched = listings.filter((l) => {
     const listingRun = extractPrintRun(l.title);
 
     // Both sides claim an explicit run — that's the most reliable signal
@@ -431,6 +425,47 @@ async function ebayPrices(identity: CardIdentity): Promise<{ prices: number[]; b
   return { prices, broadMatch };
 }
 
+async function ebayPrices(
+  identity: CardIdentity
+): Promise<{ prices: number[]; broadMatch: boolean; looseMatch: boolean }> {
+  // Sellers describe parallels/variants inconsistently (e.g. "Wave Refractor"
+  // vs "Raywave" for the same print run), so an exact-text search alone can
+  // miss real listings of the same base card even when it finds something.
+  // Always merge in the broader same-base-card search rather than only
+  // falling back to it when the exact query comes up completely empty.
+  const result = await searchEbayListingsTiered(
+    cardQuery(identity),
+    cardQueryBroad(identity),
+    cardQueryBroadest(identity),
+    10,
+    cardQuerySplitCandidates(identity)
+  );
+  const primary = extractPricesFromListings(identity, result.listings);
+  if (primary.prices.length > 0) return { ...primary, looseMatch: false };
+
+  // Every tier above still requires the set name (or one of its split-name
+  // candidates) to appear in the listing — dropping it entirely is the last
+  // real lever before giving up to a sport/age/grade guess with zero market
+  // input. This is deliberately NOT merged into the tiers above: it's a much
+  // looser query (year + brand + card number + player only), and running it
+  // unconditionally would risk exactly the kind of cross-product pollution
+  // already fixed once for cardQueryBroadest (a shared card number across
+  // unrelated inserts in the same release). Only worth that risk when
+  // nothing else found anything at all — and it still goes through the same
+  // print-run/parallel/grade corroboration checks as everything else, so a
+  // wrong-parallel or wrong-grade match still gets filtered out here too.
+  const looseQuery = [identity.year, identity.brand, identity.cardNumber && `#${identity.cardNumber}`, identity.player]
+    .filter(Boolean)
+    .join(" ");
+  const looseResult = await searchEbayListings(looseQuery, 10);
+  if (!looseResult.configured || looseResult.error || looseResult.listings.length === 0) {
+    return { ...primary, looseMatch: false };
+  }
+  const looseTagged: TieredEbayListing[] = looseResult.listings.map((l) => ({ ...l, exactMatch: false }));
+  const loose = extractPricesFromListings(identity, looseTagged);
+  return { ...loose, looseMatch: loose.prices.length > 0 };
+}
+
 function modeledFallback(identity: CardIdentity): Valuation {
   const base = SPORT_BASELINE[identity.sport] ?? 25;
   const yearNum = parseInt(identity.year, 10);
@@ -460,10 +495,19 @@ function modeledFallback(identity: CardIdentity): Valuation {
 async function fallbackValuation(
   identity: CardIdentity
 ): Promise<{ valuation: Valuation; sales: Sale[]; population: Population | null; trending: TrendingSignal | null }> {
-  const { prices, broadMatch } = await ebayPrices(identity);
+  const { prices, broadMatch, looseMatch } = await ebayPrices(identity);
   const modeled = modeledFallback(identity);
   const broadCaveat = broadMatch
     ? " Includes listings for other parallels/versions of this same base card (year/set/number/player), not just this exact one, which may differ in value."
+    : "";
+  // Only reached when every normal tier (including the split-name/broadest
+  // ones) found nothing — the set name itself never appeared in a single
+  // listing. Matched purely on year/brand/card number/player, so this is
+  // real market data but for a much less certain "same card" claim than the
+  // broadMatch case above (that still requires the set name to show up
+  // somewhere). Confidence is capped at "low" regardless of listing count.
+  const looseCaveat = looseMatch
+    ? " This card's own set name didn't turn up in any listing at all, so this is matched only on year/brand/card number/player — it could be a different parallel or even a different product from the same release."
     : "";
 
   let valuation: Valuation;
@@ -478,9 +522,9 @@ async function fallbackValuation(
       high: Math.round(high),
       trend: "flat",
       trendPercent: 0,
-      confidence: "medium",
+      confidence: looseMatch ? "low" : "medium",
       matchedComp: null,
-      note: `Based on ${prices.length} current eBay listings for this card (median asking price, range trimmed to the middle 50% to avoid mismatched search results skewing it) — these are active listings, not confirmed sold prices, so this isn't as reliable as a real sold-comp match.${broadCaveat}`,
+      note: `Based on ${prices.length} current eBay listings for this card (median asking price, range trimmed to the middle 50% to avoid mismatched search results skewing it) — these are active listings, not confirmed sold prices, so this isn't as reliable as a real sold-comp match.${broadCaveat}${looseCaveat}`,
     };
   } else if (prices.length > 0) {
     // Too few listings for a confident median, but any real evidence beats
@@ -499,7 +543,7 @@ async function fallbackValuation(
       trendPercent: 0,
       confidence: "low",
       matchedComp: null,
-      note: `Only ${prices.length} real eBay listing${prices.length > 1 ? "s" : ""} found — not enough for a confident market estimate, but still more reliable than a formula guess with no real data, so used directly (see Current eBay Listings below).${broadCaveat}`,
+      note: `Only ${prices.length} real eBay listing${prices.length > 1 ? "s" : ""} found — not enough for a confident market estimate, but still more reliable than a formula guess with no real data, so used directly (see Current eBay Listings below).${broadCaveat}${looseCaveat}`,
     };
   } else {
     valuation = modeled;
