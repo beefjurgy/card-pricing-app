@@ -52,9 +52,9 @@ function CardDetailPageInner() {
   const [allCards, setAllCards] = useState<LibraryCard[] | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  // Tracks which side is open rather than a raw URL, so navigating to a
-  // different card (Prev/Next, arrow keys) while the lightbox is open keeps
-  // it open and just swaps to that card's image instead of closing.
+  // Tracks which of THIS card's own images is open — lets the lightbox's
+  // arrows/arrow-keys toggle between front and back without closing,
+  // instead of forcing a close-then-reopen just to flip the card over.
   const [lightboxSide, setLightboxSide] = useState<"front" | "back" | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
@@ -111,28 +111,31 @@ function CardDetailPageInner() {
       });
   }, [params.id, sortBy]);
 
+  // While the lightbox is open, arrow keys toggle between THIS card's own
+  // front/back images (only meaningful with a back image to toggle to) —
+  // not navigation to a different card, which the second effect below
+  // still handles once the lightbox is closed.
   useEffect(() => {
     if (!lightboxSide) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") setLightboxSide(null);
+      if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && card?.backImageUrl) {
+        setLightboxSide((s) => (s === "front" ? "back" : "front"));
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxSide]);
+  }, [lightboxSide, card?.backImageUrl]);
 
-  // Arrow-key card navigation works the same whether the lightbox is open or
-  // not — lightboxSide (front/back) persists across the router.push, so an
-  // open lightbox just follows along to the new card's image instead of
-  // closing, rather than forcing a close-then-reopen to browse images.
   useEffect(() => {
-    if (!neighbors) return;
+    if (lightboxSide || !neighbors) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft" && neighbors?.prevId) router.push(`/card/${neighbors.prevId}?sort=${sortBy}`);
       if (e.key === "ArrowRight" && neighbors?.nextId) router.push(`/card/${neighbors.nextId}?sort=${sortBy}`);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [neighbors, sortBy, router]);
+  }, [lightboxSide, neighbors, sortBy, router]);
 
   // Same player, any other card in the library — not scoped to year/set/parallel,
   // since the point is just "what else do I have of this guy" at a glance.
@@ -407,29 +410,29 @@ function CardDetailPageInner() {
           >
             ✕
           </button>
-          {neighbors?.prevId && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/card/${neighbors.prevId}?sort=${sortBy}`);
-              }}
-              aria-label="Previous card"
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
-            >
-              ‹
-            </button>
-          )}
-          {neighbors?.nextId && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/card/${neighbors.nextId}?sort=${sortBy}`);
-              }}
-              aria-label="Next card"
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
-            >
-              ›
-            </button>
+          {card.backImageUrl && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxSide((s) => (s === "front" ? "back" : "front"));
+                }}
+                aria-label={lightboxSide === "front" ? "Show back" : "Show front"}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
+              >
+                ‹
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxSide((s) => (s === "front" ? "back" : "front"));
+                }}
+                aria-label={lightboxSide === "front" ? "Show back" : "Show front"}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
+              >
+                ›
+              </button>
+            </>
           )}
           <div
             className={`max-w-[92vw] max-h-[88vh] ${zoomed ? "overflow-auto" : "overflow-hidden"} rounded-lg`}
@@ -445,7 +448,7 @@ function CardDetailPageInner() {
           </div>
           <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted whitespace-nowrap">
             Click image to {zoomed ? "zoom out" : "zoom in"}
-            {(neighbors?.prevId || neighbors?.nextId) && " · ← → to browse cards"} · Esc to close
+            {card.backImageUrl && " · ← → for front/back"} · Esc to close
           </p>
         </div>
       )}
