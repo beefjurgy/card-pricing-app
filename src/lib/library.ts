@@ -19,6 +19,7 @@ interface CardRow {
   set_name: string;
   card_number: string;
   parallel: string;
+  other_details: string;
   grading_company: string;
   grade: string;
   cert_number: string;
@@ -53,6 +54,7 @@ function rowToCard(row: CardRow): LibraryCard {
     setName: row.set_name,
     cardNumber: row.card_number,
     parallel: row.parallel,
+    otherDetails: row.other_details,
     gradingCompany: row.grading_company,
     grade: row.grade,
     certNumber: row.cert_number,
@@ -85,13 +87,13 @@ export async function readLibrary(): Promise<LibraryCard[]> {
 export async function addCard(card: LibraryCard): Promise<void> {
   await sql`
     INSERT INTO cards (
-      id, user_id, player, sport, year, brand, set_name, card_number, parallel,
+      id, user_id, player, sport, year, brand, set_name, card_number, parallel, other_details,
       grading_company, grade, cert_number, is_autograph, autograph_company, autograph_grade,
       image_url, back_image_url, date_added, identify_confidence, identify_notes,
       valuation, sales, population, trending,
       purchase_price, purchase_date, purchase_platform, is_featured, description, description_voice
     ) VALUES (
-      ${card.id}, ${card.userId}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel},
+      ${card.id}, ${card.userId}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel}, ${card.otherDetails},
       ${card.gradingCompany}, ${card.grade}, ${card.certNumber}, ${card.isAutograph}, ${card.autographCompany}, ${card.autographGrade},
       ${card.imageUrl}, ${card.backImageUrl}, ${card.dateAdded}, ${card.identifyConfidence}, ${card.identifyNotes},
       ${JSON.stringify(card.valuation)}, ${JSON.stringify(card.sales)},
@@ -132,6 +134,7 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
         set_name = ${merged.setName},
         card_number = ${merged.cardNumber},
         parallel = ${merged.parallel},
+        other_details = ${merged.otherDetails},
         grading_company = ${merged.gradingCompany},
         grade = ${merged.grade},
         cert_number = ${merged.certNumber},

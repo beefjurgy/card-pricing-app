@@ -22,7 +22,6 @@ export function CardIdentityEditor({
   const [editing, setEditing] = useState(false);
   const [identity, setIdentity] = useState<CardIdentity>(card);
   const [notes, setNotes] = useState(card.identifyNotes);
-  const [extra, setExtra] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,11 +37,10 @@ export function CardIdentityEditor({
     setSaving(true);
     setError(null);
     try {
-      const mergedIdentity = { ...identity, parallel: [identity.parallel, extra.trim()].filter(Boolean).join(" ") };
       const res = await fetch(`/api/library/${card.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...mergedIdentity, identifyNotes: notes }),
+        body: JSON.stringify({ ...identity, identifyNotes: notes }),
       });
       const data = await res.json();
       if (data.card) {
@@ -98,12 +96,7 @@ export function CardIdentityEditor({
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Other
-            <input
-              value={extra}
-              onChange={(e) => setExtra(e.target.value)}
-              placeholder="e.g. Color Match — appended onto Parallel when you save"
-              className={inputClass}
-            />
+            <input {...field("otherDetails")} placeholder="e.g. Color Match" className={inputClass} />
           </label>
           <label className="flex flex-col gap-1 text-sm">
             Grading Company
@@ -170,7 +163,6 @@ export function CardIdentityEditor({
             onClick={() => {
               setIdentity(card);
               setNotes(card.identifyNotes);
-              setExtra("");
               setEditing(false);
               setError(null);
             }}
@@ -210,7 +202,6 @@ export function CardIdentityEditor({
             onClick={() => {
               setIdentity(card);
               setNotes(card.identifyNotes);
-              setExtra("");
               setEditing(true);
             }}
             className="mt-2 text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-foreground transition-colors whitespace-nowrap"
@@ -222,6 +213,9 @@ export function CardIdentityEditor({
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
         {card.cardNumber && <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">#{card.cardNumber}</span>}
         {card.parallel && <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{card.parallel}</span>}
+        {card.otherDetails && (
+          <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{card.otherDetails}</span>
+        )}
         {certUrl ? (
           <a
             href={certUrl}

@@ -1,9 +1,12 @@
 import { CardIdentity } from "./types";
 
-export type QueryFields = Pick<CardIdentity, "player" | "year" | "brand" | "setName" | "cardNumber" | "parallel">;
+export type QueryFields = Pick<
+  CardIdentity,
+  "player" | "year" | "brand" | "setName" | "cardNumber" | "parallel" | "otherDetails"
+>;
 
 export function cardQuery(card: QueryFields): string {
-  return [card.year, card.brand, card.setName, card.cardNumber && `#${card.cardNumber}`, card.player, card.parallel]
+  return [card.year, card.brand, card.setName, card.cardNumber && `#${card.cardNumber}`, card.player, card.parallel, card.otherDetails]
     .filter(Boolean)
     .join(" ");
 }

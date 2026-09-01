@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Player name is required." }, { status: 400 });
   }
 
-  const cardSummary = [identity.year, identity.brand, identity.setName, identity.parallel, identity.player]
+  const cardSummary = [identity.year, identity.brand, identity.setName, identity.parallel, identity.otherDetails, identity.player]
     .filter(Boolean)
     .join(" ");
   const gradeText = identity.gradingCompany && identity.grade ? `, graded ${identity.gradingCompany} ${identity.grade}` : "";

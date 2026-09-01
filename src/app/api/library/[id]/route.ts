@@ -39,6 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     setName?: string;
     cardNumber?: string;
     parallel?: string;
+    otherDetails?: string;
     gradingCompany?: string;
     grade?: string;
     certNumber?: string;
@@ -64,6 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ("setName" in body) patch.setName = body.setName;
   if ("cardNumber" in body) patch.cardNumber = body.cardNumber;
   if ("parallel" in body) patch.parallel = body.parallel;
+  if ("otherDetails" in body) patch.otherDetails = body.otherDetails || "";
   if ("gradingCompany" in body) patch.gradingCompany = body.gradingCompany;
   if ("grade" in body) patch.grade = body.grade;
   if ("certNumber" in body) patch.certNumber = body.certNumber;

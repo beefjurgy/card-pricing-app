@@ -10,6 +10,12 @@ export interface CardIdentity {
   setName: string;
   cardNumber: string;
   parallel: string;
+  // Free-form extra distinguishing detail that doesn't fit the parallel
+  // name itself, e.g. "Color Match" — the Prizm color matches the player's
+  // jersey. Kept separate from `parallel` rather than merged into it so a
+  // user's own edit doesn't get silently folded into (and indistinguishable
+  // from) an AI-guessed parallel name.
+  otherDetails: string;
   gradingCompany: string;
   grade: string;
   certNumber: string; // grading company's cert/serial number printed on the slab label (often paired with a QR code). Empty if ungraded or not legible.
