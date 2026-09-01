@@ -9,7 +9,7 @@ export default function AboutPage() {
       </Link>
 
       <h1 className="text-3xl font-bold tracking-tight mt-4">About BeefyNukes</h1>
-      <p className="text-muted text-sm mt-1">Everything you want to know about your collection.</p>
+      <p className="text-muted text-sm mt-1">Everything about your collection in one place.</p>
 
       <div className="mt-8 space-y-6">
         <div className="rounded-xl border border-border bg-surface p-5">

@@ -49,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   </span>
                 </Link>
                 <span className="hidden sm:inline text-xs text-muted">
-                  Everything you want to know about your collection.
+                  Everything about your collection in one place.
                 </span>
               </div>
               <nav className="flex items-center gap-1 text-sm">

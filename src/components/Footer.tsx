@@ -47,7 +47,7 @@ export function Footer() {
               Beefy<span className="text-brand">Nukes</span>
             </span>
           </div>
-          <p className="text-background/70 mt-2 leading-relaxed">Everything you want to know about your collection.</p>
+          <p className="text-background/70 mt-2 leading-relaxed">Everything about your collection in one place.</p>
           <div className="mt-4">
             <SocialIcons />
           </div>
