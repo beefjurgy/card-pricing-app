@@ -44,6 +44,8 @@ export default function PublicProfilePage() {
     };
   }, [username]);
 
+  const sortedCards = useMemo(() => (cards ? sortCards(cards, sortBy) : null), [cards, sortBy]);
+
   if (notFound) {
     return (
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-16 text-center text-muted">
@@ -51,8 +53,6 @@ export default function PublicProfilePage() {
       </div>
     );
   }
-
-  const sortedCards = useMemo(() => (cards ? sortCards(cards, sortBy) : null), [cards, sortBy]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
