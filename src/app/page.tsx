@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
+import { LandingPage } from "@/components/LandingPage";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
@@ -28,7 +29,7 @@ export default function LibraryPage() {
 function LibraryPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const isOwner = Boolean(session?.user?.id);
 
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
@@ -159,6 +160,9 @@ function LibraryPageInner() {
   const overallDiff = totalPaidValue - totalPaid;
   const overallPositive = overallDiff >= 0;
   const overallPct = totalPaid > 0 ? Math.round((overallDiff / totalPaid) * 1000) / 10 : null;
+
+  if (status === "loading") return null;
+  if (!isOwner) return <LandingPage cards={cards} />;
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
