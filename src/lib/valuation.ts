@@ -215,6 +215,12 @@ const GENERIC_PARALLEL_WORDS = new Set([
   "parallel",
   "insert",
   "base",
+  // Same reasoning as "prizm"/"refractor" — a finish/technology term that
+  // describes a whole class of parallels rather than one specific,
+  // distinguishing color/name (e.g. "Rainbow Foil", "Red Foil", "Gold
+  // Foil" are usually genuinely different parallels; "foil" itself never
+  // is on its own).
+  "foil",
   "memorabilia",
   "jersey",
   "jerseys",
