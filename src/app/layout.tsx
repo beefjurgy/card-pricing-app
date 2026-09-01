@@ -40,17 +40,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Providers>
           <header className="border-b border-border">
             <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Link href="/" className="flex items-center">
+              <div className="flex items-baseline gap-2">
+                <Link href="/" className="flex items-center gap-2">
                   <Logo size={32} />
-                </Link>
-                <span className="flex items-baseline gap-2">
                   <span className="text-xl font-bold tracking-tight">
                     Beefy<span className="text-brand">Nukes</span>
                   </span>
-                  <span className="hidden sm:inline text-xs text-muted">
-                    Everything you want to know about your collection.
-                  </span>
+                </Link>
+                <span className="hidden sm:inline text-xs text-muted">
+                  Everything you want to know about your collection.
                 </span>
               </div>
               <nav className="flex items-center gap-1 text-sm">
