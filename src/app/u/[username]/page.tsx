@@ -57,7 +57,7 @@ export default function PublicProfilePage() {
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4 flex items-center gap-3">
         {user?.avatarUrl && (
-          <Image src={user.avatarUrl} alt="" width={48} height={48} className="rounded-full" unoptimized />
+          <Image src={user.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" unoptimized />
         )}
         <div>
           <h1 className="text-2xl font-bold tracking-tight">@{username}</h1>

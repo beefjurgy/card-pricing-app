@@ -109,7 +109,7 @@ export default function AccountPage() {
 
       <div className="flex items-center gap-4 mb-8">
         {avatarPreview ? (
-          <Image src={avatarPreview} alt="" width={64} height={64} className="rounded-full" unoptimized />
+          <Image src={avatarPreview} alt="" width={64} height={64} className="w-16 h-16 rounded-full object-cover" unoptimized />
         ) : (
           <div className="w-16 h-16 rounded-full bg-surface-2 border border-border" />
         )}
