@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Beefy Nukes — Sports Card Pricing",
+  title: "Card Nukes — Sports Card Pricing",
   description: "Scan sports cards into your nukes and track valuations from recent sales.",
   appleWebApp: {
-    title: "Beefy Nukes",
+    title: "Card Nukes",
     statusBarStyle: "default",
   },
 };
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <Link href="/" className="flex items-center gap-2">
                   <Logo size={32} />
                   <span className="text-xl font-bold tracking-tight">
-                    Beefy<span className="text-brand">Nukes</span>
+                    Card<span className="text-brand">Nukes</span>
                   </span>
                 </Link>
                 <span className="hidden sm:inline text-xs text-muted">

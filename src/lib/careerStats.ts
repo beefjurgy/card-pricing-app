@@ -15,7 +15,7 @@ const cache = new Map<string, { value: CareerStats | null; expiresAt: number }>(
 
 async function fetchJson(url: string): Promise<unknown | null> {
   try {
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; BeefyNukes/1.0)" } });
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (compatible; CardNukes/1.0)" } });
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {

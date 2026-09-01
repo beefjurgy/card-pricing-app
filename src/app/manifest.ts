@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Beefy Nukes",
-    short_name: "Beefy Nukes",
+    name: "Card Nukes",
+    short_name: "Card Nukes",
     description: "Scan sports cards into your nukes and track valuations from recent sales.",
     start_url: "/",
     display: "standalone",

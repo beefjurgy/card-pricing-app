@@ -26,7 +26,7 @@ this app needs deep native functionality Capacitor can't reach).
 - Apple Developer Program enrollment ($99/yr) — needed before any
   TestFlight or App Store submission step below.
 - A Mac with Xcode installed (already true for this project).
-- Decide on a bundle identifier (e.g. `re.nearfutu.beefynukes` or
+- Decide on a bundle identifier (e.g. `re.nearfutu.cardnukes` or
   similar reverse-domain string) and register it in the Apple
   Developer portal.
 

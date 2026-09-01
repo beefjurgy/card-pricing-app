@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 
-// Placeholder for the future multi-user build — no real BeefyNukes social
+// Placeholder for the future multi-user build — no real CardNukes social
 // profiles exist yet, so these link to the platforms' own homepages rather
 // than a fabricated profile URL. Swap in the real profile links once
 // accounts exist.
@@ -44,7 +44,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <Logo size={24} />
             <span className="font-bold tracking-tight">
-              Beefy<span className="text-brand">Nukes</span>
+              Card<span className="text-brand">Nukes</span>
             </span>
           </div>
           <p className="text-background/70 mt-2 leading-relaxed">Everything about your collection in one place.</p>
@@ -82,7 +82,7 @@ export function Footer() {
 
       <div className="border-t border-background/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 text-xs text-background/50 text-center">
-          BeefyNukes 2026. All rights reserved.
+          CardNukes 2026. All rights reserved.
         </div>
       </div>
     </footer>
