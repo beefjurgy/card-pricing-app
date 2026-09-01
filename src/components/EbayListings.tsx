@@ -20,6 +20,7 @@ interface EbaySearchResult {
   environment: "sandbox" | "production";
   listings: EbayListing[];
   hasBroadMatches: boolean;
+  looseMatch: boolean;
 }
 
 function formatUsd(value: number): string {
@@ -42,7 +43,14 @@ export function EbayListings({ identity }: { identity: CardIdentity }) {
       })
       .catch(() => {
         if (!cancelled) {
-          setResult({ configured: true, error: "Could not reach the server.", environment: "sandbox", listings: [], hasBroadMatches: false });
+          setResult({
+            configured: true,
+            error: "Could not reach the server.",
+            environment: "sandbox",
+            listings: [],
+            hasBroadMatches: false,
+            looseMatch: false,
+          });
         }
       });
     return () => {
@@ -70,7 +78,15 @@ export function EbayListings({ identity }: { identity: CardIdentity }) {
         <p className="text-sm text-muted">No active eBay listings found for this card right now.</p>
       )}
 
-      {!result.error && result.hasBroadMatches && (
+      {!result.error && result.looseMatch && (
+        <p className="text-xs text-accent mb-3">
+          This card&apos;s own set name didn&apos;t turn up in any listing at all, so these are matched only on
+          year/brand/card number/player — they could be a different parallel or even a different product from the
+          same release.
+        </p>
+      )}
+
+      {!result.error && result.hasBroadMatches && !result.looseMatch && (
         <p className="text-xs text-accent mb-3">
           Sellers describe parallels/variants inconsistently, so listings for other versions of this same base card are
           included below (marked &quot;Other parallel&quot;) alongside exact matches.

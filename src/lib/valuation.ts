@@ -3,7 +3,7 @@ import { CardIdentity, MarketEntry, Population, Sale, TrendingSignal, Valuation 
 import { computeTrending } from "./trending";
 import { getCareerStats } from "./careerStats";
 import { searchEbayListings, searchEbayListingsTiered, TieredEbayListing } from "./ebay";
-import { cardQuery, cardQueryBroad, cardQueryBroadest, cardQuerySplitCandidates } from "./platformLinks";
+import { cardQuery, cardQueryBroad, cardQueryBroadest, cardQueryLastResort, cardQuerySplitCandidates } from "./platformLinks";
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
@@ -470,10 +470,7 @@ async function ebayPrices(
   // nothing else found anything at all — and it still goes through the same
   // print-run/parallel/grade corroboration checks as everything else, so a
   // wrong-parallel or wrong-grade match still gets filtered out here too.
-  const looseQuery = [identity.year, identity.brand, identity.cardNumber && `#${identity.cardNumber}`, identity.player]
-    .filter(Boolean)
-    .join(" ");
-  const looseResult = await searchEbayListings(looseQuery, 10);
+  const looseResult = await searchEbayListings(cardQueryLastResort(identity), 10);
   if (!looseResult.configured || looseResult.error || looseResult.listings.length === 0) {
     return { ...primary, looseMatch: false };
   }

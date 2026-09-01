@@ -45,6 +45,15 @@ export function cardQuerySplitCandidates(card: QueryFields): string[] {
   );
 }
 
+// The absolute last resort — drops the set name entirely, keeping only
+// year/brand/card number/player. Every other query above still requires the
+// set name (or one of its split-name candidates) to appear in a listing;
+// this is what finds a real comp when a set is so obscure, new, or
+// inconsistently named that no seller's title ever includes it at all.
+export function cardQueryLastResort(card: QueryFields): string {
+  return [card.year, card.brand, card.cardNumber && `#${card.cardNumber}`, card.player].filter(Boolean).join(" ");
+}
+
 export function cardQueryBroadest(card: QueryFields): string | null {
   // A "/"-joined setName is handled by cardQuerySplitCandidates above, which
   // tries each real candidate name on its own. Falling through to this
