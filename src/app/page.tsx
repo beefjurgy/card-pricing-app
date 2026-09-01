@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
@@ -46,6 +47,8 @@ export default function LibraryPage() {
 function LibraryPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const isOwner = Boolean(session?.user?.id);
 
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [error, setError] = useState(false);
@@ -182,7 +185,7 @@ function LibraryPageInner() {
         <h1 className="text-3xl font-bold tracking-tight">My Collection</h1>
         <p className="text-muted text-sm mt-1">
           {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
-          {cards && filteredCards.length > 0 && (
+          {cards && filteredCards.length > 0 && isOwner && (
             <>
               {" "}
               · Est. total value{" "}
