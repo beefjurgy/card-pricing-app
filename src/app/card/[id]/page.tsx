@@ -52,7 +52,10 @@ function CardDetailPageInner() {
   const [allCards, setAllCards] = useState<LibraryCard[] | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  // Tracks which side is open rather than a raw URL, so navigating to a
+  // different card (Prev/Next, arrow keys) while the lightbox is open keeps
+  // it open and just swaps to that card's image instead of closing.
+  const [lightboxSide, setLightboxSide] = useState<"front" | "back" | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
 
@@ -60,6 +63,10 @@ function CardDetailPageInner() {
     fetch(`/api/library/${params.id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setCard(data?.card ?? null));
+    // A carried-over zoom level from the previous card would be jarring —
+    // reset it on every navigation, whether via Prev/Next, arrow keys, or a
+    // direct link, not just the explicit lightbox-open click handlers.
+    setZoomed(false);
   }, [params.id]);
 
   async function toggleFeatured() {
@@ -105,16 +112,20 @@ function CardDetailPageInner() {
   }, [params.id, sortBy]);
 
   useEffect(() => {
-    if (!lightboxImage) return;
+    if (!lightboxSide) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setLightboxImage(null);
+      if (e.key === "Escape") setLightboxSide(null);
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxImage]);
+  }, [lightboxSide]);
 
+  // Arrow-key card navigation works the same whether the lightbox is open or
+  // not — lightboxSide (front/back) persists across the router.push, so an
+  // open lightbox just follows along to the new card's image instead of
+  // closing, rather than forcing a close-then-reopen to browse images.
   useEffect(() => {
-    if (lightboxImage || !neighbors) return;
+    if (!neighbors) return;
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft" && neighbors?.prevId) router.push(`/card/${neighbors.prevId}?sort=${sortBy}`);
       if (e.key === "ArrowRight" && neighbors?.nextId) router.push(`/card/${neighbors.nextId}?sort=${sortBy}`);
@@ -159,6 +170,7 @@ function CardDetailPageInner() {
   }
 
   const recentSales = [...card.sales].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5);
+  const lightboxImage = lightboxSide === "front" ? card.imageUrl : lightboxSide === "back" ? card.backImageUrl : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
@@ -216,7 +228,7 @@ function CardDetailPageInner() {
             onClick={() => {
               if (card.imageUrl) {
                 setZoomed(false);
-                setLightboxImage(card.imageUrl);
+                setLightboxSide("front");
               }
             }}
           >
@@ -239,7 +251,7 @@ function CardDetailPageInner() {
               className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border bg-surface cursor-zoom-in mt-4"
               onClick={() => {
                 setZoomed(false);
-                setLightboxImage(card.backImageUrl);
+                setLightboxSide("back");
               }}
             >
               <Image src={card.backImageUrl} alt={`${card.player} (back)`} fill className="object-cover" sizes="280px" />
@@ -386,15 +398,39 @@ function CardDetailPageInner() {
       {lightboxImage && (
         <div
           className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-6"
-          onClick={() => setLightboxImage(null)}
+          onClick={() => setLightboxSide(null)}
         >
           <button
-            onClick={() => setLightboxImage(null)}
+            onClick={() => setLightboxSide(null)}
             className="absolute top-5 right-5 w-9 h-9 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-lg"
             aria-label="Close"
           >
             ✕
           </button>
+          {neighbors?.prevId && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/card/${neighbors.prevId}?sort=${sortBy}`);
+              }}
+              aria-label="Previous card"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
+            >
+              ‹
+            </button>
+          )}
+          {neighbors?.nextId && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/card/${neighbors.nextId}?sort=${sortBy}`);
+              }}
+              aria-label="Next card"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-surface-2 text-foreground hover:bg-surface flex items-center justify-center text-xl"
+            >
+              ›
+            </button>
+          )}
           <div
             className={`max-w-[92vw] max-h-[88vh] ${zoomed ? "overflow-auto" : "overflow-hidden"} rounded-lg`}
             onClick={(e) => e.stopPropagation()}
@@ -407,8 +443,9 @@ function CardDetailPageInner() {
               className={`transition-transform duration-200 ${zoomed ? "cursor-zoom-out scale-[2]" : "cursor-zoom-in max-h-[88vh] max-w-[92vw] object-contain"}`}
             />
           </div>
-          <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted">
-            Click image to {zoomed ? "zoom out" : "zoom in"} · Esc to close
+          <p className="absolute bottom-5 left-1/2 -translate-x-1/2 text-xs text-muted whitespace-nowrap">
+            Click image to {zoomed ? "zoom out" : "zoom in"}
+            {(neighbors?.prevId || neighbors?.nextId) && " · ← → to browse cards"} · Esc to close
           </p>
         </div>
       )}
