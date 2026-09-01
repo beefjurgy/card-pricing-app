@@ -28,7 +28,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return Boolean(email && email === OWNER_EMAIL && profile?.email_verified);
     },
     async session({ session, user }) {
-      if (session.user) session.user.id = user.id;
+      if (session.user) {
+        session.user.id = user.id;
+        session.user.username = (user as { username?: string | null }).username ?? null;
+      }
       return session;
     },
   },

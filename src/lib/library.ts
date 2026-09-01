@@ -84,6 +84,11 @@ export async function readLibrary(): Promise<LibraryCard[]> {
   return rows.map(rowToCard);
 }
 
+export async function readLibraryForUser(userId: string): Promise<LibraryCard[]> {
+  const rows = (await sql`SELECT * FROM cards WHERE user_id = ${userId} ORDER BY date_added DESC`) as CardRow[];
+  return rows.map(rowToCard);
+}
+
 export async function addCard(card: LibraryCard): Promise<void> {
   await sql`
     INSERT INTO cards (

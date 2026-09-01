@@ -24,6 +24,9 @@ export function AuthHeaderControl() {
       >
         + Add Card
       </Link>
+      <Link href="/account" className="px-3 py-2 rounded-md text-muted hover:text-foreground transition-colors">
+        Account
+      </Link>
       <button
         onClick={() => signOut({ callbackUrl: "/" })}
         className="px-3 py-2 rounded-md text-muted hover:text-foreground transition-colors"

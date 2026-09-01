@@ -18,15 +18,17 @@ interface UserRow {
   email: string;
   emailVerified: string | null;
   image: string | null;
+  username: string | null;
 }
 
-function rowToUser(row: UserRow): AdapterUser {
+function rowToUser(row: UserRow): AdapterUser & { username: string | null } {
   return {
     id: row.id,
     name: row.name,
     email: row.email,
     emailVerified: row.emailVerified ? new Date(row.emailVerified) : null,
     image: row.image,
+    username: row.username,
   };
 }
 
