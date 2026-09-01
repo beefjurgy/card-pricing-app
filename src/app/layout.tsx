@@ -58,15 +58,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </header>
           <main className="flex-1">{children}</main>
-          <footer className="border-t border-border py-6 text-center text-xs text-muted space-y-2">
-            <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
-            <p>
-              <Link href="/vocabulary" className="hover:text-foreground">
-                <span className="inline-block font-medium bg-gradient-to-r from-accent-2/30 to-accent-2/30 bg-no-repeat [background-size:100%_40%] [background-position:0_82%]">
-                  Lingo
-                </span>
+          <footer className="border-t border-border py-6 text-center text-xs text-muted space-y-4">
+            <div className="max-w-sm mx-auto rounded-xl bg-brand/10 border border-brand/20 py-3 px-4 flex items-center justify-center gap-6 text-sm">
+              <Link href="/portfolio" className="font-medium text-brand hover:underline">
+                Portfolio
               </Link>
-            </p>
+              <Link href="/vocabulary" className="font-medium text-brand hover:underline">
+                Lingo
+              </Link>
+              <Link href="/about" className="font-medium text-brand hover:underline">
+                About
+              </Link>
+            </div>
+            <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
             {/* Placeholder for the future multi-user build — no real
                 BeefyNukes profiles exist yet, so these link to the
                 platforms' own homepages rather than a fabricated profile
