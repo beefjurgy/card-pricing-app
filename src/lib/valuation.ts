@@ -294,6 +294,22 @@ function titleMentionsParallelName(title: string, parallelName: string): boolean
     // way "Rookie Card"/"Rookie RC" fails a plain "Rookie" identity — a
     // single remaining word is disqualified only by a genuinely different,
     // non-generic word right after it, not by any word at all.
+    // "Rookie" is a special case even among single remaining words: it
+    // describes card TYPE/status, not a colored/style parallel with
+    // genuinely different-valued siblings. There's no such thing as a
+    // competing "Rookie" parallel to confuse it with — unlike "Green" (which
+    // really can have a sibling like "Green Disco" at a very different
+    // price), so the sibling-lookahead below doesn't apply to it. Real
+    // listings for a "Base Rookie" card almost always follow the word with
+    // the player's own name ("Star Rookie Ken Griffey Jr #1"), which the
+    // lookahead would otherwise treat as a disqualifying different parallel
+    // — this was silently failing every real listing for several vintage
+    // rookie cards (Griffey, Randy Johnson, Barry Sanders) down to a modeled
+    // guess purely because a name, not a generic word, followed "Rookie".
+    if (words[0].toLowerCase() === "rookie") {
+      return new RegExp(`\\b${escapeRegExp(words[0])}\\b`, "i").test(title);
+    }
+
     const regex = new RegExp(`\\b${escapeRegExp(words[0])}\\b(\\s+([a-zA-Z]+))?`, "gi");
     let match: RegExpExecArray | null;
     while ((match = regex.exec(title))) {
