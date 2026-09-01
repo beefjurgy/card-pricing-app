@@ -22,8 +22,8 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
       </div>
       <h1 className="text-3xl font-bold tracking-tight">Everything about your card collection in one place</h1>
       <p className="text-muted mt-4 leading-relaxed">
-        AI identifies your cards, prices them against live eBay listings, and gives you a shareable profile to show
-        off what you&apos;ve got.
+        Scan your cards, AI identifies them, prices them against live eBay listings, and gives you a shareable
+        profile to brag about.
       </p>
       <Link
         href="/login"

@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 
 // Replaces the plain "Nukes" nav link — the header logo already goes to the
 // library, so this slot is free to be a fun shortcut instead: roll the dice,
-// land on a random card from the collection.
+// land on a random card from the collection. Hidden while signed out, same
+// as the other owner-only header controls — a logged-out visitor sees the
+// generic landing page, not a browsable collection to roll through.
 export function RandomCardButton() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [rolling, setRolling] = useState(false);
 
   async function roll() {
@@ -32,6 +36,8 @@ export function RandomCardButton() {
       setRolling(false);
     }
   }
+
+  if (!session) return null;
 
   return (
     <button
