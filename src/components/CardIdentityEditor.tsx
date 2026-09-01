@@ -206,14 +206,6 @@ export function CardIdentityEditor({
         )}
       </div>
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
-        <a
-          href={getSetInfoUrl(card)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/30 font-medium hover:bg-accent/25 transition-colors"
-        >
-          Set info ↗
-        </a>
         {card.cardNumber && <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">#{card.cardNumber}</span>}
         {card.parallel && <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{card.parallel}</span>}
         {card.otherDetails && (
@@ -238,6 +230,14 @@ export function CardIdentityEditor({
             ✍️ {[card.autographCompany, card.autographGrade && `Auto ${card.autographGrade}`].filter(Boolean).join(" ") || "Autographed"}
           </span>
         )}
+        <a
+          href={getSetInfoUrl(card)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/30 font-medium hover:bg-accent/25 transition-colors"
+        >
+          Set info ↗
+        </a>
       </div>
     </div>
   );
