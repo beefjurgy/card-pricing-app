@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
+import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 
 interface ProfileUser {
   name: string | null;
@@ -17,6 +18,7 @@ export default function PublicProfilePage() {
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>("recent");
 
   useEffect(() => {
     let cancelled = false;
@@ -50,7 +52,7 @@ export default function PublicProfilePage() {
     );
   }
 
-  const totalValue = cards?.reduce((sum, c) => sum + c.valuation.estimate, 0) ?? 0;
+  const sortedCards = useMemo(() => (cards ? sortCards(cards, sortBy) : null), [cards, sortBy]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
@@ -66,29 +68,39 @@ export default function PublicProfilePage() {
               <>
                 {" "}
                 · {cards.length} card{cards.length === 1 ? "" : "s"}
-                {cards.length > 0 && (
-                  <>
-                    {" "}
-                    · Est. total value{" "}
-                    <span className="text-accent font-medium">
-                      {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-                    </span>
-                  </>
-                )}
               </>
             )}
           </p>
         </div>
       </div>
 
-      {!cards ? (
+      {sortedCards && sortedCards.length > 1 && (
+        <div className="flex justify-end mb-8">
+          <label className="flex items-center gap-2 text-sm text-muted whitespace-nowrap">
+            Sort by
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="px-2.5 py-1.5 rounded-md bg-surface-2 border border-border text-foreground focus:border-accent-2 outline-none"
+            >
+              {(Object.keys(SORT_LABELS) as SortOption[]).map((key) => (
+                <option key={key} value={key}>
+                  {SORT_LABELS[key]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
+      {!sortedCards ? (
         <div className="text-muted py-16 text-center">Loading…</div>
-      ) : cards.length === 0 ? (
+      ) : sortedCards.length === 0 ? (
         <div className="text-muted py-16 text-center">No cards yet.</div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {cards.map((card) => (
-            <CardTile key={card.id} card={card} />
+          {sortedCards.map((card) => (
+            <CardTile key={card.id} card={card} sortBy={sortBy} />
           ))}
         </div>
       )}
