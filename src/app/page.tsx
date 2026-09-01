@@ -7,19 +7,7 @@ import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
-
-// There's no dedicated structured field for "this is a memorabilia/relic
-// card" (unlike isAutograph), so this checks the same free-text fields the
-// identify step already fills in — parallel and set name reliably mention
-// "Relic"/"Patch"/"Jersey"/"Memorabilia"/"Swatch"/"(MEM)" for these cards,
-// the same way a title reliably mentions "auto" elsewhere in this app.
-// Word-boundary matching (not a plain substring) so "mem" doesn't also
-// catch an unrelated word like a "Memphis" team reference.
-const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "threads", "duals", "materials"];
-function isPatchCard(card: LibraryCard): boolean {
-  const text = `${card.parallel} ${card.setName}`.toLowerCase();
-  return PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(text));
-}
+import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
 // Matches against the fields someone would actually type to find a card —
 // player is the common case, but brand/set/year/parallel let a query like
@@ -27,13 +15,6 @@ function isPatchCard(card: LibraryCard): boolean {
 function cardMatchesSearch(card: LibraryCard, query: string): boolean {
   const haystack = `${card.player} ${card.brand} ${card.setName} ${card.year} ${card.parallel}`.toLowerCase();
   return haystack.includes(query);
-}
-
-// A serial-numbered parallel prints its own run directly on the card
-// ("086/150"), and that run reliably ends up in the stored parallel field
-// (e.g. "Purple /150") — same signal valuation.ts's extractPrintRun reads.
-function isNumberedCard(card: LibraryCard): boolean {
-  return /\/\d{1,4}\b/.test(card.parallel);
 }
 
 export default function LibraryPage() {
