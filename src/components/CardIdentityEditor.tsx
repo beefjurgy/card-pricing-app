@@ -189,7 +189,7 @@ export function CardIdentityEditor({
 
   return (
     <div>
-      <p className="text-muted text-sm">{title || "Unknown set"}</p>
+      <p className="text-muted text-sm max-w-xl leading-snug">{title || "Unknown set"}</p>
       <div className="flex items-start justify-between gap-3">
         <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
         {canEdit && (
