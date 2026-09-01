@@ -249,6 +249,16 @@ function titleMentionsParallelName(title: string, parallelName: string): boolean
   const words = parallelName
     .split(/\s+/)
     .map((w) => w.trim())
+    // Strip leading/trailing punctuation the AI identification step
+    // sometimes attaches as an annotation style — e.g. "Base Rookie (Rainbow
+    // Foil)" leaves the literal "(" and ")" stuck to "Rainbow"/"Foil)". A
+    // \b...\b check on "Foil)" requires that literal closing paren in the
+    // title, which no real eBay listing ever has, so this silently rejected
+    // every one of 12 real listings for a real card down to a modeled guess
+    // ($36 instead of the real ~$1-2 market). Internal punctuation (a
+    // hyphen in "X-Fractor", an apostrophe) is left alone — only the outer
+    // edges of each word are trimmed.
+    .map((w) => w.replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, ""))
     // A standalone punctuation token (e.g. "&" out of "Home & Away") can
     // never satisfy a \b...\b word-boundary check on its own — both of its
     // neighbors are typically non-word characters (spaces) too, so the
