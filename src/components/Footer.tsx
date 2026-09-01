@@ -82,7 +82,7 @@ export function Footer() {
 
       <div className="border-t border-background/10">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 text-xs text-background/50 text-center">
-          BeefyNukes — a personal collection project, still being built.
+          BeefyNukes 2026. All rights reserved.
         </div>
       </div>
     </footer>
