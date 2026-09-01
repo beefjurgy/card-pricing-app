@@ -47,7 +47,11 @@ export const IDENTITY_TOOL = {
         enum: ["high", "medium", "low"],
         description: "Your confidence in this identification overall.",
       },
-      notes: { type: "string", description: "Brief notes about anything uncertain or ambiguous." },
+      notes: {
+        type: "string",
+        description:
+          "1-3 sentences covering two things: (1) anything uncertain or ambiguous about the identification, and (2) genuinely notable physical/design details a collector would find interesting at a glance — a memorabilia swatch's color/fabric, a distinctive insert theme or die-cut shape, an unusual foil/refractor finish, a notable photo/pose, anything that makes this specific card worth a second look. Skip pure boilerplate that's true of nearly every card in the library (e.g. just restating 'raw/ungraded, no grading label visible' with nothing else) — if the card is straightforward with nothing distinctive to call out, a short factual sentence is fine, but always prefer a real detail over a generic one.",
+      },
     },
     required: [
       "player",
