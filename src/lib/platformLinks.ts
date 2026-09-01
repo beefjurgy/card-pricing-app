@@ -1,12 +1,14 @@
 import { CardIdentity } from "./types";
 
-export type QueryFields = Pick<
-  CardIdentity,
-  "player" | "year" | "brand" | "setName" | "cardNumber" | "parallel" | "otherDetails"
->;
+// otherDetails is deliberately excluded — it's a free-form personal note
+// (e.g. "Color Match"), not a distinguishing search term, and mixing it into
+// the query would risk affecting the valuation estimate. It's informational
+// only: shown on the card page and included in AI descriptions, never fed
+// into eBay search or comp matching.
+export type QueryFields = Pick<CardIdentity, "player" | "year" | "brand" | "setName" | "cardNumber" | "parallel">;
 
 export function cardQuery(card: QueryFields): string {
-  return [card.year, card.brand, card.setName, card.cardNumber && `#${card.cardNumber}`, card.player, card.parallel, card.otherDetails]
+  return [card.year, card.brand, card.setName, card.cardNumber && `#${card.cardNumber}`, card.player, card.parallel]
     .filter(Boolean)
     .join(" ");
 }
