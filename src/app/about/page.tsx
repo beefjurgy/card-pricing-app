@@ -13,12 +13,20 @@ export default function AboutPage() {
 
       <div className="mt-8 space-y-6">
         <div className="rounded-xl border border-border bg-surface p-5">
-          <SectionHeading className="mb-2">What this is</SectionHeading>
-          <p className="text-sm text-muted leading-relaxed">
-            BeefyNukes is a personal sports and trading card collection tracker. Snap a photo of a card and it gets
-            identified — player, set, parallel, grading — and priced using real, current market listings rather than
-            a static price guide.
-          </p>
+          <SectionHeading className="mb-3">Why I built this</SectionHeading>
+          <div className="text-sm text-muted leading-relaxed space-y-4">
+            <p>
+              I&apos;ve got the soul of a kid with adult money. Building this collection is about having fun chasing
+              down the cards I dreamed of owning growing up — but the deeper I got into it, the more I noticed there
+              wasn&apos;t really one place that brought everything about collecting together.
+            </p>
+            <p>
+              The lingo is scattered across forums. Grading services are all over the map, each with their own
+              quirks. And the cards themselves have gotten so much prettier, packed with tiny details that are easy
+              to miss. Starting out can be a little daunting.
+            </p>
+            <p>Hopefully this is everything you need, all in one place.</p>
+          </div>
         </div>
 
         <div className="rounded-xl border border-border bg-surface p-5">
@@ -27,15 +35,6 @@ export default function AboutPage() {
             Every estimate is built from real eBay listings matched to the exact card, parallel, and grade — with a
             confidence level and a plain-English note explaining where the number came from. When there isn&apos;t
             enough real market data, that&apos;s disclosed too, rather than guessing with false precision.
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-border bg-surface p-5">
-          <SectionHeading className="mb-2">Where it's headed</SectionHeading>
-          <p className="text-sm text-muted leading-relaxed">
-            This started as, and still is, one collector&apos;s personal tool — actively being built and refined.
-            It&apos;s not a company or a finished product yet, just something built to actually be useful for
-            tracking and understanding a real collection.
           </p>
         </div>
       </div>
