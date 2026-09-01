@@ -5,6 +5,13 @@ const POP_REPORT_URLS: Record<string, string> = {
   PSA: "https://www.psacard.com/pop",
   BGS: "https://www.beckett.com/grading/pop-report",
   SGC: "https://gosgc.com/pop-report",
+  // WCG (World Class Grading) has no population report or online cert
+  // database at all — its own FAQ says so outright ("we don't currently
+  // offer an online verification database"; cert checks are done by
+  // emailing them the serial number). The main site is the most honest
+  // destination available, same treatment as the lookup-page-only
+  // companies below.
+  WCG: "https://worldclassgrading.com/",
 };
 
 export function getPopReportUrl(gradingCompany: string): string {
