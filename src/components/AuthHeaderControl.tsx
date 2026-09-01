@@ -20,7 +20,7 @@ export function AuthHeaderControl() {
     <>
       <Link
         href="/scan"
-        className="px-3 py-2 rounded-md bg-brand text-white font-medium hover:opacity-90 transition-opacity"
+        className="px-3 py-2 rounded-md bg-accent-2 text-white font-medium hover:opacity-90 transition-opacity"
       >
         + Add Card
       </Link>
