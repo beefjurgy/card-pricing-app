@@ -145,16 +145,19 @@ function LibraryPageInner() {
 
   const filteredCards = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
+    // A search should look across the whole collection, not just whatever
+    // sport tab or category pill happens to be active — finding a specific
+    // card shouldn't require clearing filters set up for browsing first.
+    if (query) return (cards ?? []).filter((c) => cardMatchesSearch(c, query));
     return sportFilteredCards.filter((c) => {
       if (gradedOnly && !(c.gradingCompany && c.grade)) return false;
       if (autoOnly && !c.isAutograph) return false;
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
       if (featuredOnly && !c.isFeatured) return false;
-      if (query && !cardMatchesSearch(c, query)) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery]);
+  }, [cards, sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery]);
 
   function handleFeaturedChange(id: string, isFeatured: boolean) {
     setCards((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, isFeatured } : c)) : prev));
