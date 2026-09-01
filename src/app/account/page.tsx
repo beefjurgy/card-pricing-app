@@ -50,12 +50,26 @@ export default function AccountPage() {
     }
   }
 
+  const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+  const MAX_BYTES = 4 * 1024 * 1024;
+
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setAvatarUploading(true);
     setAvatarError(null);
+    // HEIC photos (the default on iPhone/Mac Photos) upload "successfully"
+    // but can't be decoded by most browsers' <img> tags — reject up front
+    // with a clear message instead of a silent broken image.
+    if (!ALLOWED_TYPES.has(file.type)) {
+      setAvatarError("That photo format isn't supported. Try a JPG, PNG, or WEBP.");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setAvatarError("That photo is too large. Please use one under 4MB.");
+      return;
+    }
+    setAvatarUploading(true);
     try {
       const formData = new FormData();
       formData.append("image", file);
@@ -65,6 +79,21 @@ export default function AccountPage() {
       await update({ avatarUrl: data.avatarUrl });
     } catch (err) {
       setAvatarError(err instanceof Error ? err.message : "Could not upload photo.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
+  async function handleRemoveAvatar() {
+    setAvatarError(null);
+    setAvatarUploading(true);
+    try {
+      const res = await fetch("/api/account/avatar", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not remove photo.");
+      await update({ avatarUrl: null });
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : "Could not remove photo.");
     } finally {
       setAvatarUploading(false);
     }
@@ -85,10 +114,22 @@ export default function AccountPage() {
           <div className="w-16 h-16 rounded-full bg-surface-2 border border-border" />
         )}
         <div>
-          <label className="inline-block px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer hover:bg-surface-2 transition-colors">
-            {avatarUploading ? "Uploading…" : "Change photo"}
-            <input type="file" accept="image/*" onChange={handleAvatarChange} disabled={avatarUploading} className="hidden" />
-          </label>
+          <div className="flex items-center gap-3">
+            <label className="inline-block px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer hover:bg-surface-2 transition-colors">
+              {avatarUploading ? "Working…" : "Change photo"}
+              <input type="file" accept="image/*" onChange={handleAvatarChange} disabled={avatarUploading} className="hidden" />
+            </label>
+            {session.user.avatarUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                disabled={avatarUploading}
+                className="text-sm text-muted hover:text-foreground transition-colors disabled:opacity-50"
+              >
+                Remove
+              </button>
+            )}
+          </div>
           {avatarError && <p className="text-xs text-down mt-1">{avatarError}</p>}
         </div>
       </div>

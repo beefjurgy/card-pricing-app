@@ -35,6 +35,10 @@ export async function setAvatarUrl(userId: string, avatarUrl: string): Promise<v
   await sql`UPDATE users SET avatar_url = ${avatarUrl} WHERE id = ${userId}`;
 }
 
+export async function clearAvatarUrl(userId: string): Promise<void> {
+  await sql`UPDATE users SET avatar_url = NULL WHERE id = ${userId}`;
+}
+
 export async function setUsername(userId: string, username: string): Promise<void> {
   const normalized = username.toLowerCase();
   if (!USERNAME_PATTERN.test(normalized)) {
