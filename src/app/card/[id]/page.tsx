@@ -132,7 +132,7 @@ function CardDetailPageInner() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxImage, neighbors, sortBy, router]);
+  }, [neighbors, sortBy, router]);
 
   // Same player, any other card in the library — not scoped to year/set/parallel,
   // since the point is just "what else do I have of this guy" at a glance.
