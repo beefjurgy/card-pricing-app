@@ -21,6 +21,7 @@ export function CardIdentityEditor({
 }) {
   const [editing, setEditing] = useState(false);
   const [identity, setIdentity] = useState<CardIdentity>(card);
+  const [notes, setNotes] = useState(card.identifyNotes);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +40,7 @@ export function CardIdentityEditor({
       const res = await fetch(`/api/library/${card.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(identity),
+        body: JSON.stringify({ ...identity, identifyNotes: notes }),
       });
       const data = await res.json();
       if (data.card) {
@@ -135,6 +136,17 @@ export function CardIdentityEditor({
           </div>
         )}
 
+        <label className="flex flex-col gap-1 text-sm">
+          Notes
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
+            placeholder="Anything worth remembering about this card"
+            className={`${inputClass} resize-y`}
+          />
+        </label>
+
         {error && <p className="text-sm text-down">{error}</p>}
 
         <p className="text-xs text-muted">
@@ -146,6 +158,7 @@ export function CardIdentityEditor({
           <button
             onClick={() => {
               setIdentity(card);
+              setNotes(card.identifyNotes);
               setEditing(false);
               setError(null);
             }}
@@ -184,6 +197,7 @@ export function CardIdentityEditor({
           <button
             onClick={() => {
               setIdentity(card);
+              setNotes(card.identifyNotes);
               setEditing(true);
             }}
             className="mt-2 text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-foreground transition-colors whitespace-nowrap"

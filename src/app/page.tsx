@@ -14,7 +14,7 @@ import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/libraryS
 // the same way a title reliably mentions "auto" elsewhere in this app.
 // Word-boundary matching (not a plain substring) so "mem" doesn't also
 // catch an unrelated word like a "Memphis" team reference.
-const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "threads"];
+const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "threads", "duals", "materials"];
 function isPatchCard(card: LibraryCard): boolean {
   const text = `${card.parallel} ${card.setName}`.toLowerCase();
   return PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(text));

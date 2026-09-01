@@ -137,7 +137,8 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
         cert_number = ${merged.certNumber},
         is_autograph = ${merged.isAutograph},
         autograph_company = ${merged.autographCompany},
-        autograph_grade = ${merged.autographGrade}
+        autograph_grade = ${merged.autographGrade},
+        identify_notes = ${merged.identifyNotes}
     WHERE id = ${id}
     RETURNING *
   `) as CardRow[];

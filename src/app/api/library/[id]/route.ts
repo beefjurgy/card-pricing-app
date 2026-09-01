@@ -45,6 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     isAutograph?: boolean;
     autographCompany?: string;
     autographGrade?: string;
+    identifyNotes?: string;
   };
 
   const patch: Record<string, unknown> = {};
@@ -69,6 +70,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ("isAutograph" in body) patch.isAutograph = Boolean(body.isAutograph);
   if ("autographCompany" in body) patch.autographCompany = body.autographCompany;
   if ("autographGrade" in body) patch.autographGrade = body.autographGrade;
+  if ("identifyNotes" in body) patch.identifyNotes = body.identifyNotes || "";
 
   const card = await updateCard(id, patch);
   if (!card) return NextResponse.json({ error: "Not found" }, { status: 404 });
