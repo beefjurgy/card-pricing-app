@@ -13,7 +13,7 @@ function SocialIcons() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Instagram (coming soon)"
-        className="text-background/60 hover:text-background transition-colors"
+        className="text-background/60 hover:text-accent-2 transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -26,7 +26,7 @@ function SocialIcons() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="TikTok (coming soon)"
-        className="text-background/60 hover:text-background transition-colors"
+        className="text-background/60 hover:text-accent-2 transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
           <path d="M16.6 5.82c-.9-.88-1.44-2.06-1.5-3.32h-3.1v13.3c0 1.52-1.24 2.76-2.76 2.76a2.76 2.76 0 0 1 0-5.52c.27 0 .53.04.78.11V9.9a5.9 5.9 0 0 0-.78-.05 5.9 5.9 0 1 0 5.9 5.9V9.15a7.6 7.6 0 0 0 4.46 1.44V7.5a3.8 3.8 0 0 1-3-1.68z" />
@@ -54,29 +54,29 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="font-medium uppercase tracking-wide text-xs text-background/50 mb-3">Navigate</p>
-          <div className="flex flex-col gap-2">
-            <Link href="/" className="text-background/80 hover:text-background transition-colors">
-              My Collection
-            </Link>
-            <Link href="/portfolio" className="text-background/80 hover:text-background transition-colors">
-              Portfolio
-            </Link>
-            <Link href="/vocabulary" className="text-background/80 hover:text-background transition-colors">
-              Lingo
-            </Link>
-            <Link href="/about" className="text-background/80 hover:text-background transition-colors">
-              About
-            </Link>
-          </div>
-        </div>
-
-        <div>
           <p className="font-medium uppercase tracking-wide text-xs text-background/50 mb-3">How the estimates work</p>
           <p className="text-background/70 leading-relaxed">
             Valuations are estimates based on live eBay listings and other public data sources — not appraisals or
             financial advice.
           </p>
+        </div>
+
+        <div>
+          <p className="font-medium uppercase tracking-wide text-xs text-background/50 mb-3">Navigate</p>
+          <div className="flex flex-col gap-2">
+            <Link href="/" className="text-background/80 hover:text-accent-2 transition-colors">
+              My Collection
+            </Link>
+            <Link href="/portfolio" className="text-background/80 hover:text-accent-2 transition-colors">
+              Portfolio
+            </Link>
+            <Link href="/vocabulary" className="text-background/80 hover:text-accent-2 transition-colors">
+              Lingo
+            </Link>
+            <Link href="/about" className="text-background/80 hover:text-accent-2 transition-colors">
+              About
+            </Link>
+          </div>
         </div>
       </div>
 
