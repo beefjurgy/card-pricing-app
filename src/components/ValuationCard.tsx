@@ -35,11 +35,13 @@ export function ValuationCard({
   cardId,
   onRefresh,
   canRefresh,
+  identifyNotes,
 }: {
   valuation: Valuation;
   cardId: string;
   onRefresh: (card: LibraryCard) => void;
   canRefresh: boolean;
+  identifyNotes?: string;
 }) {
   const [refreshing, setRefreshing] = useState(false);
   const [confirmingOverride, setConfirmingOverride] = useState(false);
@@ -129,6 +131,13 @@ export function ValuationCard({
         </p>
       )}
       <p className="text-sm text-background/90 leading-relaxed">{valuation.note}</p>
+
+      {identifyNotes && (
+        <div className="border-t border-white/10 pt-3">
+          <p className="text-xs uppercase tracking-wide text-background mb-1">Identification Notes</p>
+          <p className="text-sm text-background/90 leading-relaxed">{identifyNotes}</p>
+        </div>
+      )}
     </div>
   );
 }

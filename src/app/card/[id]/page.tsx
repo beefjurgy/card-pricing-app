@@ -298,14 +298,13 @@ function CardDetailPageInner() {
         <div className="space-y-6 min-w-0">
           <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} />
 
-          {card.identifyNotes && (
-            <div className="rounded-xl border border-border bg-surface p-5">
-              <SectionHeading className="mb-2">Identification Notes</SectionHeading>
-              <p className="text-sm text-muted leading-relaxed">{card.identifyNotes}</p>
-            </div>
-          )}
-
-          <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} canRefresh={isOwner} />
+          <ValuationCard
+            valuation={card.valuation}
+            cardId={card.id}
+            onRefresh={setCard}
+            canRefresh={isOwner}
+            identifyNotes={card.identifyNotes}
+          />
 
           <CardDescription
             identity={card}
