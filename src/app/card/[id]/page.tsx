@@ -111,6 +111,15 @@ function CardDetailPageInner() {
       });
   }, [params.id, sortBy]);
 
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setConfirmingDelete(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [confirmingDelete]);
+
   // While the lightbox is open, arrow keys toggle between THIS card's own
   // front/back images (only meaningful with a back image to toggle to) —
   // not navigation to a different card, which the second effect below
@@ -269,45 +278,27 @@ function CardDetailPageInner() {
             </div>
           )}
 
-          {isOwner &&
-            (confirmingDelete ? (
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => setConfirmingDelete(false)}
-                  disabled={deleting}
-                  className="flex-1 py-2 rounded-md border border-border text-muted hover:text-foreground transition-colors text-sm disabled:opacity-40"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  className="flex-1 py-2 rounded-md bg-down/90 text-white hover:bg-down transition-colors text-sm disabled:opacity-40"
-                >
-                  {deleting ? "Removing…" : "Confirm"}
-                </button>
-              </div>
-            ) : (
-              <div className="mt-4 flex items-center justify-end gap-2">
-                <button
-                  onClick={toggleFeatured}
-                  disabled={togglingFeatured}
-                  aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                  title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
-                >
-                  {card.isFeatured ? "⭐" : "☆"}
-                </button>
-                <button
-                  onClick={() => setConfirmingDelete(true)}
-                  aria-label="Remove card"
-                  title="Remove card"
-                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
-                >
-                  🗑️
-                </button>
-              </div>
-            ))}
+          {isOwner && (
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                onClick={toggleFeatured}
+                disabled={togglingFeatured}
+                aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
+              >
+                {card.isFeatured ? "⭐" : "☆"}
+              </button>
+              <button
+                onClick={() => setConfirmingDelete(true)}
+                aria-label="Remove card"
+                title="Remove card"
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
+              >
+                🗑️
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="space-y-6 min-w-0">
@@ -397,6 +388,41 @@ function CardDetailPageInner() {
           <ShopSupplies />
         </div>
       </div>
+
+      {confirmingDelete && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-6"
+          onClick={() => !deleting && setConfirmingDelete(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl bg-surface border border-border p-6 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-4xl mb-2">🗑️</p>
+            <h2 className="text-lg font-bold">Delete this card?</h2>
+            <p className="text-sm text-muted mt-1">
+              {card.player} — {[card.year, card.brand, card.setName].filter(Boolean).join(" ")}. This can&apos;t be
+              undone.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-md border border-border text-muted hover:text-foreground transition-colors text-sm disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-2 rounded-md bg-down text-white hover:opacity-90 transition-opacity text-sm disabled:opacity-40"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {lightboxImage && (
         <div
