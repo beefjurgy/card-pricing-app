@@ -263,7 +263,7 @@ function LibraryPageInner() {
               gradedOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
             }`}
           >
-            Graded ({gradedCount})
+            Slabs ({gradedCount})
           </button>
           <button
             onClick={() => setAutoOnly((v) => !v)}
