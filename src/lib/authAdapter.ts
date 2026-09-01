@@ -115,7 +115,8 @@ export function NeonHttpAdapter(): Adapter {
       const rows = (await sql`
         SELECT
           s."sessionToken" AS s_token, s."userId" AS s_user_id, s.expires AS s_expires,
-          u.id AS u_id, u.name AS u_name, u.email AS u_email, u."emailVerified" AS u_email_verified, u.image AS u_image
+          u.id AS u_id, u.name AS u_name, u.email AS u_email, u."emailVerified" AS u_email_verified, u.image AS u_image,
+          u.username AS u_username
         FROM sessions s
         JOIN users u ON u.id = s."userId"
         WHERE s."sessionToken" = ${sessionToken}
@@ -128,12 +129,13 @@ export function NeonHttpAdapter(): Adapter {
         u_email: string;
         u_email_verified: string | null;
         u_image: string | null;
+        u_username: string | null;
       }[];
       if (!rows.length) return null;
       const r = rows[0];
       return {
         session: rowToSession({ sessionToken: r.s_token, userId: r.s_user_id, expires: r.s_expires }),
-        user: rowToUser({ id: r.u_id, name: r.u_name, email: r.u_email, emailVerified: r.u_email_verified, image: r.u_image }),
+        user: rowToUser({ id: r.u_id, name: r.u_name, email: r.u_email, emailVerified: r.u_email_verified, image: r.u_image, username: r.u_username }),
       };
     },
 
