@@ -16,10 +16,14 @@ export function CardTile({
   card,
   sortBy,
   onFeaturedChange,
+  disableLink,
 }: {
   card: LibraryCard;
   sortBy?: SortOption;
   onFeaturedChange?: (id: string, isFeatured: boolean) => void;
+  // For the logged-out landing page's preview grid — a teaser, not a
+  // gateway into browsing individual card pages while unauthenticated.
+  disableLink?: boolean;
 }) {
   const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
   const [saving, setSaving] = useState(false);
@@ -45,11 +49,10 @@ export function CardTile({
     }
   }
 
-  return (
-    <Link
-      href={sortBy ? `/card/${card.id}?sort=${sortBy}` : `/card/${card.id}`}
-      className="group rounded-xl border border-border bg-surface overflow-hidden hover:border-accent-2/50 transition-colors flex flex-col"
-    >
+  const tileClassName = "group rounded-xl border border-border bg-surface overflow-hidden hover:border-accent-2/50 transition-colors flex flex-col";
+
+  const content = (
+    <>
       <div className="relative aspect-[3/4] bg-surface-2">
         {card.imageUrl ? (
           <Image src={card.imageUrl} alt={card.player} fill className="object-cover" sizes="(max-width: 640px) 50vw, 220px" />
@@ -83,6 +86,16 @@ export function CardTile({
           <span className="text-base">{valueEmoji(card.valuation.estimate)}</span>
         </div>
       </div>
+    </>
+  );
+
+  if (disableLink) {
+    return <div className={tileClassName}>{content}</div>;
+  }
+
+  return (
+    <Link href={sortBy ? `/card/${card.id}?sort=${sortBy}` : `/card/${card.id}`} className={tileClassName}>
+      {content}
     </Link>
   );
 }

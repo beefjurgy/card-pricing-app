@@ -3,7 +3,7 @@ import { Logo } from "./Logo";
 import { CardTile } from "./CardTile";
 import { LibraryCard } from "@/lib/types";
 
-const PREVIEW_COUNT = 4;
+const PREVIEW_COUNT = 6;
 
 // The logged-out state at "/" — distinct from the owner's own signed-in
 // "My Collection" view and from any specific person's /u/[username]
@@ -12,8 +12,26 @@ const PREVIEW_COUNT = 4;
 // preview grid uses whatever `cards` the caller already fetched (the same
 // public/redacted /api/library data the home page loads) rather than
 // fetching its own copy or using fake sample data.
+//
+// Pulls from the owner's own Featured picks (same flag as the ⭐ toggle
+// elsewhere) rather than a raw top-value sort across the whole library —
+// that's the existing "these are the ones I want to show off" signal, and
+// falls back to the full library if nothing's been starred yet. Deduped by
+// player so one big name showing up twice doesn't crowd out variety.
 export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
-  const preview = cards ? [...cards].sort((a, b) => b.valuation.estimate - a.valuation.estimate).slice(0, PREVIEW_COUNT) : [];
+  const preview = (() => {
+    if (!cards) return [];
+    const pool = cards.some((c) => c.isFeatured) ? cards.filter((c) => c.isFeatured) : cards;
+    const seenPlayers = new Set<string>();
+    const deduped = [...pool]
+      .sort((a, b) => b.valuation.estimate - a.valuation.estimate)
+      .filter((c) => {
+        if (seenPlayers.has(c.player)) return false;
+        seenPlayers.add(c.player);
+        return true;
+      });
+    return deduped.slice(0, PREVIEW_COUNT);
+  })();
 
   return (
     <div className="mx-auto max-w-2xl px-4 sm:px-6 py-20 text-center">
@@ -35,9 +53,9 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
       {preview.length > 0 && (
         <div className="mt-16 text-left">
           <p className="text-xs uppercase tracking-wide text-muted mb-3">A peek at what&apos;s inside</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {preview.map((card) => (
-              <CardTile key={card.id} card={card} />
+              <CardTile key={card.id} card={card} disableLink />
             ))}
           </div>
         </div>
