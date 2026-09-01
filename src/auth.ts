@@ -29,8 +29,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, user }) {
       if (session.user) {
+        const u = user as { username?: string | null; avatarUrl?: string | null };
         session.user.id = user.id;
-        session.user.username = (user as { username?: string | null }).username ?? null;
+        session.user.username = u.username ?? null;
+        session.user.avatarUrl = u.avatarUrl ?? null;
       }
       return session;
     },

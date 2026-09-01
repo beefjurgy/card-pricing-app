@@ -8,8 +8,7 @@ import { CardTile } from "@/components/CardTile";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 
 interface ProfileUser {
-  name: string | null;
-  image: string | null;
+  avatarUrl: string | null;
   username: string;
 }
 
@@ -57,17 +56,15 @@ export default function PublicProfilePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
       <div className="mb-4 flex items-center gap-3">
-        {user?.image && (
-          <Image src={user.image} alt="" width={48} height={48} className="rounded-full" unoptimized />
+        {user?.avatarUrl && (
+          <Image src={user.avatarUrl} alt="" width={48} height={48} className="rounded-full" unoptimized />
         )}
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{user?.name ?? `@${username}`}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">@{username}</h1>
           <p className="text-muted text-sm">
-            @{username}
             {cards && (
               <>
-                {" "}
-                · {cards.length} card{cards.length === 1 ? "" : "s"}
+                {cards.length} card{cards.length === 1 ? "" : "s"}
               </>
             )}
           </p>

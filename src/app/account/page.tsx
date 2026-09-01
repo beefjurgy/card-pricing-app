@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 export default function AccountPage() {
@@ -10,6 +11,8 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
 
   if (status === "loading") return null;
 
@@ -47,12 +50,48 @@ export default function AccountPage() {
     }
   }
 
+  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setAvatarUploading(true);
+    setAvatarError(null);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/account/avatar", { method: "PATCH", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not upload photo.");
+      await update({ avatarUrl: data.avatarUrl });
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : "Could not upload photo.");
+    } finally {
+      setAvatarUploading(false);
+    }
+  }
+
   const currentUsername = session.user.username;
+  const avatarPreview = session.user.avatarUrl ?? session.user.image;
 
   return (
     <div className="mx-auto max-w-md px-4 sm:px-6 py-8">
       <h1 className="text-2xl font-bold tracking-tight mb-1">Account</h1>
       <p className="text-muted text-sm mb-6">{session.user.email}</p>
+
+      <div className="flex items-center gap-4 mb-8">
+        {avatarPreview ? (
+          <Image src={avatarPreview} alt="" width={64} height={64} className="rounded-full" unoptimized />
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-surface-2 border border-border" />
+        )}
+        <div>
+          <label className="inline-block px-3 py-1.5 rounded-md border border-border text-sm cursor-pointer hover:bg-surface-2 transition-colors">
+            {avatarUploading ? "Uploading…" : "Change photo"}
+            <input type="file" accept="image/*" onChange={handleAvatarChange} disabled={avatarUploading} className="hidden" />
+          </label>
+          {avatarError && <p className="text-xs text-down mt-1">{avatarError}</p>}
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
         <label className="block text-sm font-medium">Username</label>

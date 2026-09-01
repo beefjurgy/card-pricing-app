@@ -19,9 +19,10 @@ interface UserRow {
   emailVerified: string | null;
   image: string | null;
   username: string | null;
+  avatar_url: string | null;
 }
 
-function rowToUser(row: UserRow): AdapterUser & { username: string | null } {
+function rowToUser(row: UserRow): AdapterUser & { username: string | null; avatarUrl: string | null } {
   return {
     id: row.id,
     name: row.name,
@@ -29,6 +30,7 @@ function rowToUser(row: UserRow): AdapterUser & { username: string | null } {
     emailVerified: row.emailVerified ? new Date(row.emailVerified) : null,
     image: row.image,
     username: row.username,
+    avatarUrl: row.avatar_url,
   };
 }
 
@@ -116,7 +118,7 @@ export function NeonHttpAdapter(): Adapter {
         SELECT
           s."sessionToken" AS s_token, s."userId" AS s_user_id, s.expires AS s_expires,
           u.id AS u_id, u.name AS u_name, u.email AS u_email, u."emailVerified" AS u_email_verified, u.image AS u_image,
-          u.username AS u_username
+          u.username AS u_username, u.avatar_url AS u_avatar_url
         FROM sessions s
         JOIN users u ON u.id = s."userId"
         WHERE s."sessionToken" = ${sessionToken}
@@ -130,12 +132,21 @@ export function NeonHttpAdapter(): Adapter {
         u_email_verified: string | null;
         u_image: string | null;
         u_username: string | null;
+        u_avatar_url: string | null;
       }[];
       if (!rows.length) return null;
       const r = rows[0];
       return {
         session: rowToSession({ sessionToken: r.s_token, userId: r.s_user_id, expires: r.s_expires }),
-        user: rowToUser({ id: r.u_id, name: r.u_name, email: r.u_email, emailVerified: r.u_email_verified, image: r.u_image, username: r.u_username }),
+        user: rowToUser({
+          id: r.u_id,
+          name: r.u_name,
+          email: r.u_email,
+          emailVerified: r.u_email_verified,
+          image: r.u_image,
+          username: r.u_username,
+          avatar_url: r.u_avatar_url,
+        }),
       };
     },
 
