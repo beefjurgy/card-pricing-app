@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { RandomCardButton } from "@/components/RandomCardButton";
 import { AuthHeaderControl } from "@/components/AuthHeaderControl";
+import { Footer } from "@/components/Footer";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -58,50 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </div>
           </header>
           <main className="flex-1">{children}</main>
-          <footer className="border-t border-border py-6 text-center text-xs text-muted space-y-4">
-            <div className="max-w-sm mx-auto rounded-xl bg-brand/10 border border-brand/20 py-3 px-4 flex items-center justify-center gap-6 text-sm">
-              <Link href="/portfolio" className="font-medium text-brand hover:underline">
-                Portfolio
-              </Link>
-              <Link href="/vocabulary" className="font-medium text-brand hover:underline">
-                Lingo
-              </Link>
-              <Link href="/about" className="font-medium text-brand hover:underline">
-                About
-              </Link>
-            </div>
-            <p>Valuations are estimates based on live eBay listings and other public data sources — not appraisals or financial advice.</p>
-            {/* Placeholder for the future multi-user build — no real
-                BeefyNukes profiles exist yet, so these link to the
-                platforms' own homepages rather than a fabricated profile
-                URL. Swap in the real profile links once accounts exist. */}
-            <p className="flex items-center justify-center gap-4">
-              <a
-                href="https://www.instagram.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram (coming soon)"
-                className="text-muted hover:text-foreground transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="2" width="20" height="20" rx="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
-                </svg>
-              </a>
-              <a
-                href="https://www.tiktok.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TikTok (coming soon)"
-                className="text-muted hover:text-foreground transition-colors"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M16.6 5.82c-.9-.88-1.44-2.06-1.5-3.32h-3.1v13.3c0 1.52-1.24 2.76-2.76 2.76a2.76 2.76 0 0 1 0-5.52c.27 0 .53.04.78.11V9.9a5.9 5.9 0 0 0-.78-.05 5.9 5.9 0 1 0 5.9 5.9V9.15a7.6 7.6 0 0 0 4.46 1.44V7.5a3.8 3.8 0 0 1-3-1.68z" />
-                </svg>
-              </a>
-            </p>
-          </footer>
+          <Footer />
         </Providers>
       </body>
     </html>
