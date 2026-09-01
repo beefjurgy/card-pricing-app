@@ -12,11 +12,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ card: redactForViewer(card, session?.user?.id) });
 }
 
-// Only purchase info, the isFeatured toggle, and the generated description
-// are editable after a card's been added — everything else (identity,
-// valuation, images) comes from the scan flow. Keeping the patch surface
-// narrow avoids this becoming a way to silently rewrite the card's
-// AI-identified fields or valuation out from under the rest of the app.
+// Purchase info, the isFeatured toggle, the generated description, and now
+// the identity fields (player/set/parallel/grading/etc., via the in-app
+// editor) are all editable after a card's been added. Valuation and images
+// still only ever come from the scan flow or the refresh-valuation route —
+// this stays a fixed allowlist rather than a generic dynamic-column UPDATE
+// so an identity edit can never accidentally overwrite those.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -31,6 +32,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     isFeatured?: boolean;
     description?: string | null;
     descriptionVoice?: LibraryCard["descriptionVoice"];
+    player?: string;
+    sport?: LibraryCard["sport"];
+    year?: string;
+    brand?: string;
+    setName?: string;
+    cardNumber?: string;
+    parallel?: string;
+    gradingCompany?: string;
+    grade?: string;
+    certNumber?: string;
+    isAutograph?: boolean;
+    autographCompany?: string;
+    autographGrade?: string;
   };
 
   const patch: Record<string, unknown> = {};
@@ -42,6 +56,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ("isFeatured" in body) patch.isFeatured = Boolean(body.isFeatured);
   if ("description" in body) patch.description = body.description || null;
   if ("descriptionVoice" in body) patch.descriptionVoice = body.descriptionVoice || null;
+  if ("player" in body) patch.player = body.player;
+  if ("sport" in body) patch.sport = body.sport;
+  if ("year" in body) patch.year = body.year;
+  if ("brand" in body) patch.brand = body.brand;
+  if ("setName" in body) patch.setName = body.setName;
+  if ("cardNumber" in body) patch.cardNumber = body.cardNumber;
+  if ("parallel" in body) patch.parallel = body.parallel;
+  if ("gradingCompany" in body) patch.gradingCompany = body.gradingCompany;
+  if ("grade" in body) patch.grade = body.grade;
+  if ("certNumber" in body) patch.certNumber = body.certNumber;
+  if ("isAutograph" in body) patch.isAutograph = Boolean(body.isAutograph);
+  if ("autographCompany" in body) patch.autographCompany = body.autographCompany;
+  if ("autographGrade" in body) patch.autographGrade = body.autographGrade;
 
   const card = await updateCard(id, patch);
   if (!card) return NextResponse.json({ error: "Not found" }, { status: 404 });

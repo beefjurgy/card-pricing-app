@@ -108,10 +108,11 @@ export async function getCard(id: string): Promise<LibraryCard | null> {
   return rows.length ? rowToCard(rows[0]) : null;
 }
 
-// The route's PATCH surface only ever touches purchase info, the isFeatured
-// toggle, and the generated description — all harmless personal-
-// organization/content fields, unlike identity/valuation/images — so mirror
-// that here rather than building a generic dynamic-column UPDATE.
+// Mirrors the route's PATCH allowlist — purchase info, isFeatured, the
+// generated description, and now the identity fields (editable via the
+// in-app card editor). Valuation and images are deliberately absent: they
+// only ever come from the scan flow or refresh-valuation's own setter, never
+// this generic patch path.
 export async function updateCard(id: string, patch: Partial<LibraryCard>): Promise<LibraryCard | null> {
   const existing = await getCard(id);
   if (!existing) return null;
@@ -123,7 +124,20 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
         purchase_platform = ${merged.purchasePlatform},
         is_featured = ${merged.isFeatured},
         description = ${merged.description},
-        description_voice = ${merged.descriptionVoice}
+        description_voice = ${merged.descriptionVoice},
+        player = ${merged.player},
+        sport = ${merged.sport},
+        year = ${merged.year},
+        brand = ${merged.brand},
+        set_name = ${merged.setName},
+        card_number = ${merged.cardNumber},
+        parallel = ${merged.parallel},
+        grading_company = ${merged.gradingCompany},
+        grade = ${merged.grade},
+        cert_number = ${merged.certNumber},
+        is_autograph = ${merged.isAutograph},
+        autograph_company = ${merged.autographCompany},
+        autograph_grade = ${merged.autographGrade}
     WHERE id = ${id}
     RETURNING *
   `) as CardRow[];

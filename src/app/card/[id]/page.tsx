@@ -17,10 +17,9 @@ import { ShopSupplies } from "@/components/ShopSupplies";
 import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
-import { CopyCertButton } from "@/components/CopyCertButton";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
-import { getPlatformSearchUrl, getSetInfoUrl } from "@/lib/platformLinks";
-import { getCertLookupUrl } from "@/lib/gradingLinks";
+import { CardIdentityEditor } from "@/components/CardIdentityEditor";
+import { getPlatformSearchUrl } from "@/lib/platformLinks";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -159,9 +158,6 @@ function CardDetailPageInner() {
     );
   }
 
-  const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
-  const gradeLabel = card.gradingCompany && card.grade ? `${card.gradingCompany} ${card.grade}` : "Raw / Ungraded";
-  const certUrl = getCertLookupUrl(card.gradingCompany, card.certNumber);
   const recentSales = [...card.sales].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5);
 
   return (
@@ -300,47 +296,7 @@ function CardDetailPageInner() {
         </div>
 
         <div className="space-y-6 min-w-0">
-          <div>
-            <p className="text-muted text-sm">
-              {title || "Unknown set"}{" "}
-              <a
-                href={getSetInfoUrl(card)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent-2 hover:underline"
-              >
-                Set info ↗
-              </a>
-            </p>
-            <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
-            <div className="mt-2 flex flex-wrap gap-2 text-xs">
-              {card.cardNumber && (
-                <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">#{card.cardNumber}</span>
-              )}
-              {card.parallel && (
-                <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{card.parallel}</span>
-              )}
-              {certUrl ? (
-                <a
-                  href={certUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/30 font-medium hover:bg-accent/25 transition-colors"
-                >
-                  ✓ {gradeLabel} ↗
-                </a>
-              ) : (
-                <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{gradeLabel}</span>
-              )}
-              {card.certNumber && <CopyCertButton certNumber={card.certNumber} />}
-              <span className="px-2 py-1 rounded-full bg-surface-2 border border-border">{card.sport}</span>
-              {card.isAutograph && (
-                <span className="px-2 py-1 rounded-full bg-accent/15 text-accent border border-accent/30 font-medium">
-                  ✍️ {[card.autographCompany, card.autographGrade && `Auto ${card.autographGrade}`].filter(Boolean).join(" ") || "Autographed"}
-                </span>
-              )}
-            </div>
-          </div>
+          <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} />
 
           <ValuationCard valuation={card.valuation} cardId={card.id} onRefresh={setCard} canRefresh={isOwner} />
 
