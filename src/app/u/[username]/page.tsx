@@ -18,7 +18,7 @@ export default function PublicProfilePage() {
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [notFound, setNotFound] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>("recent");
+  const [sortBy, setSortBy] = useState<SortOption>("value-high");
 
   useEffect(() => {
     let cancelled = false;
