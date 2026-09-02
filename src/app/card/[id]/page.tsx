@@ -13,6 +13,7 @@ import { PopulationCard } from "@/components/PopulationCard";
 import { PopulationLinkOut } from "@/components/PopulationLinkOut";
 import { SalesChart } from "@/components/SalesChart";
 import { EbayListings } from "@/components/EbayListings";
+import { PlayerBuzz } from "@/components/PlayerBuzz";
 import { ShopSupplies } from "@/components/ShopSupplies";
 import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
@@ -333,6 +334,8 @@ function CardDetailPageInner() {
           )}
 
           <EbayListings identity={card} />
+
+          <PlayerBuzz identity={card} />
 
           {recentSales.length > 0 && (
             <div className="rounded-xl border border-border bg-surface p-5">
