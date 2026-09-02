@@ -9,7 +9,7 @@ interface TicketmasterEvent {
   id: string;
   name: string;
   url?: string;
-  dates: { start: { localDate: string } };
+  dates: { start: { localDate?: string; dateTBD?: boolean; dateTBA?: boolean } };
   _embedded?: { venues?: { name?: string; city?: { name?: string }; state?: { stateCode?: string } }[] };
 }
 
@@ -22,19 +22,28 @@ async function fetchTicketmaster(): Promise<CardEvent[]> {
     const url = `https://app.ticketmaster.com/discovery/v2/events.json?${new URLSearchParams({
       keyword,
       countryCode: "US",
+      // Real card shows are tagged under Ticketmaster's "Hobby" segment —
+      // without this, a keyword match on "card show" also pulls in
+      // unrelated events whose title happens to contain both words (e.g.
+      // "Wild Card Comedy Show").
+      classificationName: "Hobby",
       apikey: apiKey,
     })}`;
     const res = await fetch(url);
     if (!res.ok) continue;
     const data = (await res.json()) as { _embedded?: { events?: TicketmasterEvent[] } };
     for (const e of data._embedded?.events ?? []) {
+      const start = e.dates.start;
+      // A show without a confirmed date yet isn't useful on a calendar —
+      // skip rather than show "Invalid Date".
+      if (!start.localDate || start.dateTBD || start.dateTBA) continue;
       const venue = e._embedded?.venues?.[0];
       const id = `ticketmaster:${e.id}`;
       events.set(id, {
         id,
         source: "ticketmaster",
         name: e.name,
-        startDate: e.dates.start.localDate,
+        startDate: start.localDate,
         city: venue?.city?.name ?? null,
         state: venue?.state?.stateCode ?? null,
         venue: venue?.name ?? null,
@@ -64,6 +73,7 @@ async function fetchSeatGeek(): Promise<CardEvent[]> {
     if (!res.ok) continue;
     const data = (await res.json()) as { events?: SeatGeekEvent[] };
     for (const e of data.events ?? []) {
+      if (!e.datetime_local) continue;
       const id = `seatgeek:${e.id}`;
       events.set(id, {
         id,
