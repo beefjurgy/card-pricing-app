@@ -203,14 +203,14 @@ export function CardIdentityEditor({
     <div>
       <p className="text-muted text-sm max-w-xl leading-snug">{title || "Unknown set"}</p>
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div>
           <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
           {heat && (
             <span
               title={`${heat.mentions7d} ESPN mention${heat.mentions7d === 1 ? "" : "s"} in the last 7 days, ${heat.mentions30d} in the last 30${
                 heat.listingCount !== null ? ` · ${heat.listingCount} active eBay listing${heat.listingCount === 1 ? "" : "s"}` : ""
               }`}
-              className={`text-sm px-3 py-1 rounded-full font-semibold whitespace-nowrap ${HEAT_STYLE[heat.label]}`}
+              className={`inline-block mt-2 text-sm px-3 py-1 rounded-full font-semibold whitespace-nowrap ${HEAT_STYLE[heat.label]}`}
             >
               {heat.emoji} {heat.label}
             </span>
