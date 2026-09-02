@@ -13,6 +13,30 @@ export default function AboutPage() {
 
       <div className="mt-8 space-y-6">
         <div className="rounded-xl border border-border bg-surface p-5">
+          <SectionHeading className="mb-3">About</SectionHeading>
+          <div className="text-sm text-muted leading-relaxed space-y-4">
+            <p>
+              CardNukes is a card valuation app built for collectors who want to know what their cards are actually
+              worth, right now. You scan or add a card, and it pulls real market data from recent sales to give you
+              an up-to-date price instead of a guess.
+            </p>
+            <p>
+              Every card you own lives in one place — your personal collection, tracked and organized so you always
+              know what you&apos;re holding.
+            </p>
+            <p>
+              The name comes from hobby slang: a &quot;nuke&quot; is a standout pull, a card so good it stops the
+              room — and this is where you keep track of yours.
+            </p>
+            <p>
+              Whether you&apos;re chasing grails, cracking a case hit, or just seeing what an old rookie card is
+              worth today, CardNukes turns your stack of cards into a clear, current picture of your collection&apos;s
+              value.
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-border bg-surface p-5">
           <SectionHeading className="mb-3">Why I built this</SectionHeading>
           <div className="text-sm text-muted leading-relaxed space-y-4">
             <p>
