@@ -4,8 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { CardEvent } from "@/lib/events";
 
+// The DB column is a plain date, but the driver serializes it as a full
+// ISO timestamp ("2026-09-19T00:00:00.000Z") — take just the date part
+// and re-anchor to local midnight, otherwise a UTC timestamp can render
+// as the previous day in a negative-offset timezone.
+function toLocalDate(dateStr: string): Date {
+  return new Date(`${dateStr.slice(0, 10)}T00:00:00`);
+}
+
 function formatDate(dateStr: string): string {
-  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return toLocalDate(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default function EventsPage() {
@@ -31,7 +39,7 @@ export default function EventsPage() {
     if (!events) return [];
     const map = new Map<string, CardEvent[]>();
     for (const e of events) {
-      const label = new Date(`${e.startDate}T00:00:00`).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const label = toLocalDate(e.startDate).toLocaleDateString("en-US", { month: "long", year: "numeric" });
       if (!map.has(label)) map.set(label, []);
       map.get(label)!.push(e);
     }
