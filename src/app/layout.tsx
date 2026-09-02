@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     title: "Card Nukes",
     statusBarStyle: "default",
   },
+  other: {
+    "impact-site-verification": "1f78ebd0-7920-47ad-bd6a-6a69c0458360",
+  },
 };
 
 export const viewport: Viewport = {
