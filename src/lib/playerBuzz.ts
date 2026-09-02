@@ -131,10 +131,13 @@ async function fetchNytNews(player: string): Promise<TrendingItem[]> {
   const apiKey = process.env.NYT_API_KEY;
   if (!apiKey) return [];
 
+  // No news_desk/section filter — verified live that NYT's sports coverage
+  // isn't reliably tagged news_desk:"Sports" (confirmed empirically: even
+  // an unambiguous query like "NFL" returns zero hits filtered that way).
+  // A distinctive full player name is specific enough on its own.
   const data = (await fetchJson(
     `https://api.nytimes.com/svc/search/v2/articlesearch.json?${new URLSearchParams({
       q: player,
-      fq: 'news_desk:("Sports")',
       sort: "newest",
       "api-key": apiKey,
     })}`
