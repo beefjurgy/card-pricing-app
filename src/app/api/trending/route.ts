@@ -8,6 +8,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "player and sport are required." }, { status: 400 });
   }
 
-  const items = await getTrendingBuzz(player, sport);
-  return NextResponse.json({ items });
+  const buzz = await getTrendingBuzz(player, sport);
+  return NextResponse.json(buzz);
 }

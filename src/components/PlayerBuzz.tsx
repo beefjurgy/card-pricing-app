@@ -11,6 +11,19 @@ interface BuzzItem {
   publishedDate: string | null;
 }
 
+interface EspnBuzzScore {
+  label: "Trending" | "Active" | "Quiet";
+  emoji: string;
+  mentions7d: number;
+  mentions30d: number;
+}
+
+const BUZZ_STYLE: Record<EspnBuzzScore["label"], string> = {
+  Trending: "bg-down/10 text-down",
+  Active: "bg-up/10 text-up",
+  Quiet: "bg-surface-2 text-muted",
+};
+
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -18,10 +31,12 @@ function formatDate(dateStr: string | null): string {
 
 export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
   const [items, setItems] = useState<BuzzItem[] | null>(null);
+  const [espnBuzz, setEspnBuzz] = useState<EspnBuzzScore | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setItems(null);
+    setEspnBuzz(null);
     fetch("/api/trending", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -29,7 +44,10 @@ export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled) setItems(data.items ?? []);
+        if (!cancelled) {
+          setItems(data.items ?? []);
+          setEspnBuzz(data.espnBuzz ?? null);
+        }
       })
       .catch(() => {
         if (!cancelled) setItems([]);
@@ -43,7 +61,17 @@ export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
-      <SectionHeading className="mb-3">In the News</SectionHeading>
+      <div className="flex items-center justify-between mb-3">
+        <SectionHeading>In the News</SectionHeading>
+        {espnBuzz && (
+          <span
+            title={`${espnBuzz.mentions7d} ESPN mention${espnBuzz.mentions7d === 1 ? "" : "s"} in the last 7 days, ${espnBuzz.mentions30d} in the last 30`}
+            className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${BUZZ_STYLE[espnBuzz.label]}`}
+          >
+            {espnBuzz.emoji} {espnBuzz.label}
+          </span>
+        )}
+      </div>
       {!items ? (
         <p className="text-sm text-muted">Loading…</p>
       ) : (
