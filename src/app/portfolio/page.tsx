@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Line,
   LineChart,
@@ -28,6 +29,7 @@ function formatUsd(value: number): string {
 const SPORT_COLORS = ["#16a34a", "#3b82f6", "#f59e0b", "#8b5cf6", "#f43f5e", "#9ca3af", "#0891b2", "#ca8a04"];
 
 export default function PortfolioPage() {
+  const { data: session, status } = useSession();
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [error, setError] = useState(false);
 
@@ -97,6 +99,19 @@ export default function PortfolioPage() {
       .map(([sport, { value, count }]) => ({ sport, value, count }))
       .sort((a, b) => b.value - a.value);
   }, [cards]);
+
+  if (status === "loading") return null;
+
+  if (!session) {
+    return (
+      <div className="mx-auto max-w-md px-4 sm:px-6 py-16 text-center">
+        <p className="text-muted mb-4">Sign in to view your portfolio.</p>
+        <Link href="/login" className="text-accent hover:underline">
+          Sign in
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
