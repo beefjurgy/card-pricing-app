@@ -246,7 +246,7 @@ function CardDetailPageInner() {
           >
             {card.imageUrl ? (
               <>
-                <Image src={card.imageUrl} alt={card.player} fill className="object-cover" sizes="280px" />
+                <Image src={card.imageUrl} alt={card.player} fill className="object-cover" sizes="280px" unoptimized />
                 <div className="absolute inset-0 hidden md:flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-colors">
                   <span className="opacity-0 group-hover:opacity-100 transition-opacity text-sm font-medium bg-black/70 px-3 py-1.5 rounded-full">
                     🔍 Click to zoom
@@ -266,7 +266,7 @@ function CardDetailPageInner() {
                 setLightboxSide("back");
               }}
             >
-              <Image src={card.backImageUrl} alt={`${card.player} (back)`} fill className="object-cover" sizes="280px" />
+              <Image src={card.backImageUrl} alt={`${card.player} (back)`} fill className="object-cover" sizes="280px" unoptimized />
               <span className="absolute top-2 left-2 text-[10px] px-2 py-0.5 rounded-full bg-black/60 text-white border border-white/30">
                 Back
               </span>

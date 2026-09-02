@@ -55,7 +55,7 @@ export function CardTile({
     <>
       <div className="relative aspect-[3/4] bg-surface-2">
         {card.imageUrl ? (
-          <Image src={card.imageUrl} alt={card.player} fill className="object-cover" sizes="(max-width: 640px) 50vw, 220px" />
+          <Image src={card.imageUrl} alt={card.player} fill className="object-cover" sizes="(max-width: 640px) 50vw, 220px" unoptimized />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-4xl">🃏</div>
         )}
