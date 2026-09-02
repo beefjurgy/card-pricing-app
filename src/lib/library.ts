@@ -39,6 +39,7 @@ interface CardRow {
   purchase_date: string | null;
   purchase_platform: string | null;
   is_featured: boolean;
+  is_public: boolean;
   description: string | null;
   description_voice: string | null;
 }
@@ -74,13 +75,18 @@ function rowToCard(row: CardRow): LibraryCard {
     purchaseDate: row.purchase_date,
     purchasePlatform: row.purchase_platform,
     isFeatured: row.is_featured,
+    isPublic: row.is_public,
     description: row.description,
     descriptionVoice: row.description_voice as LibraryCard["descriptionVoice"],
   };
 }
 
+// Only ever called for a logged-out viewer (see /api/library) — cards
+// toggled off public view are excluded. The signed-in owner's own read
+// (readLibraryForUser) intentionally shows everything, public or not, so
+// they can see and manage the toggle.
 export async function readLibrary(): Promise<LibraryCard[]> {
-  const rows = (await sql`SELECT * FROM cards ORDER BY date_added DESC`) as CardRow[];
+  const rows = (await sql`SELECT * FROM cards WHERE is_public = true ORDER BY date_added DESC`) as CardRow[];
   return rows.map(rowToCard);
 }
 
@@ -96,7 +102,7 @@ export async function addCard(card: LibraryCard): Promise<void> {
       grading_company, grade, cert_number, is_autograph, autograph_company, autograph_grade,
       image_url, back_image_url, date_added, identify_confidence, identify_notes,
       valuation, sales, population, trending,
-      purchase_price, purchase_date, purchase_platform, is_featured, description, description_voice
+      purchase_price, purchase_date, purchase_platform, is_featured, is_public, description, description_voice
     ) VALUES (
       ${card.id}, ${card.userId}, ${card.player}, ${card.sport}, ${card.year}, ${card.brand}, ${card.setName}, ${card.cardNumber}, ${card.parallel}, ${card.otherDetails},
       ${card.gradingCompany}, ${card.grade}, ${card.certNumber}, ${card.isAutograph}, ${card.autographCompany}, ${card.autographGrade},
@@ -104,7 +110,7 @@ export async function addCard(card: LibraryCard): Promise<void> {
       ${JSON.stringify(card.valuation)}, ${JSON.stringify(card.sales)},
       ${card.population ? JSON.stringify(card.population) : null},
       ${card.trending ? JSON.stringify(card.trending) : null},
-      ${card.purchasePrice}, ${card.purchaseDate}, ${card.purchasePlatform}, ${card.isFeatured},
+      ${card.purchasePrice}, ${card.purchaseDate}, ${card.purchasePlatform}, ${card.isFeatured}, true,
       ${card.description}, ${card.descriptionVoice}
     )
   `;
@@ -130,6 +136,7 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
         purchase_date = ${merged.purchaseDate},
         purchase_platform = ${merged.purchasePlatform},
         is_featured = ${merged.isFeatured},
+        is_public = ${merged.isPublic},
         description = ${merged.description},
         description_voice = ${merged.descriptionVoice},
         player = ${merged.player},

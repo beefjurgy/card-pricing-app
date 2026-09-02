@@ -59,6 +59,7 @@ function CardDetailPageInner() {
   const [lightboxSide, setLightboxSide] = useState<"front" | "back" | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
+  const [togglingPublic, setTogglingPublic] = useState(false);
   const [ebayListingCount, setEbayListingCount] = useState<number | null>(null);
   const [heat, setHeat] = useState<HeatScore | null>(null);
 
@@ -87,6 +88,22 @@ function CardDetailPageInner() {
       if (data.card) setCard(data.card);
     } finally {
       setTogglingFeatured(false);
+    }
+  }
+
+  async function togglePublic() {
+    if (!card || togglingPublic) return;
+    setTogglingPublic(true);
+    try {
+      const res = await fetch(`/api/library/${card.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPublic: !card.isPublic }),
+      });
+      const data = await res.json();
+      if (data.card) setCard(data.card);
+    } finally {
+      setTogglingPublic(false);
     }
   }
 
@@ -293,6 +310,15 @@ function CardDetailPageInner() {
                 className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
               >
                 {card.isFeatured ? "⭐" : "☆"}
+              </button>
+              <button
+                onClick={togglePublic}
+                disabled={togglingPublic}
+                aria-label={card.isPublic ? "Make private (hide from public profile)" : "Make public"}
+                title={card.isPublic ? "Public — visible on your public profile" : "Private — hidden from your public profile"}
+                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
+              >
+                {card.isPublic ? "🌐" : "🔒"}
               </button>
               <button
                 onClick={() => setConfirmingDelete(true)}

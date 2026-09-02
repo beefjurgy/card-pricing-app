@@ -109,6 +109,7 @@ export interface LibraryCard extends CardIdentity {
   purchaseDate: string | null;
   purchasePlatform: string | null;
   isFeatured: boolean;
+  isPublic: boolean;
   description: string | null;
   descriptionVoice: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | null;
 }

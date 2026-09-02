@@ -13,6 +13,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ use
   const cards = await readLibraryForUser(user.id);
   return NextResponse.json({
     user,
-    cards: cards.map((c) => redactForViewer(c, session?.user?.id)),
+    // The public profile always reflects what a real visitor sees, even
+    // when the owner is viewing their own page — cards toggled off public
+    // view are excluded here regardless of who's asking.
+    cards: cards.filter((c) => c.isPublic).map((c) => redactForViewer(c, session?.user?.id)),
   });
 }

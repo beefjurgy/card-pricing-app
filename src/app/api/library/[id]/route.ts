@@ -25,11 +25,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { id } = await params;
+  const existing = await getCard(id);
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (existing.userId !== session.user.id) {
+    return NextResponse.json({ error: "You don't own this card." }, { status: 403 });
+  }
+
   const body = (await req.json()) as {
     purchasePrice?: number | null;
     purchaseDate?: string | null;
     purchasePlatform?: string | null;
     isFeatured?: boolean;
+    isPublic?: boolean;
     description?: string | null;
     descriptionVoice?: LibraryCard["descriptionVoice"];
     player?: string;
@@ -56,6 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ("purchaseDate" in body) patch.purchaseDate = body.purchaseDate || null;
   if ("purchasePlatform" in body) patch.purchasePlatform = body.purchasePlatform || null;
   if ("isFeatured" in body) patch.isFeatured = Boolean(body.isFeatured);
+  if ("isPublic" in body) patch.isPublic = Boolean(body.isPublic);
   if ("description" in body) patch.description = body.description || null;
   if ("descriptionVoice" in body) patch.descriptionVoice = body.descriptionVoice || null;
   if ("player" in body) patch.player = body.player;
@@ -86,6 +94,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   }
 
   const { id } = await params;
+  const existing = await getCard(id);
+  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (existing.userId !== session.user.id) {
+    return NextResponse.json({ error: "You don't own this card." }, { status: 403 });
+  }
+
   const ok = await deleteCard(id);
   if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ success: true });
