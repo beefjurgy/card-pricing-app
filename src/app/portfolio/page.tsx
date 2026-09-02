@@ -134,6 +134,15 @@ export default function PortfolioPage() {
         </div>
       )}
 
+      {cards && cards.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-6">
+          <div>
+            <p className="text-xs text-muted uppercase tracking-wide">Full Collection Value</p>
+            <p className="text-2xl font-bold text-accent">{formatUsd(fullCollectionValue)}</p>
+          </div>
+        </div>
+      )}
+
       {sportBreakdown.length > 0 && (
         <div className="mt-8 rounded-xl border border-border bg-surface p-5">
           <p className="text-xs text-muted uppercase tracking-wide mb-4">Sport Breakdown</p>
@@ -180,13 +189,6 @@ export default function PortfolioPage() {
 
       {points.length > 0 && (
         <>
-          <div className="mt-6 flex flex-wrap gap-6">
-            <div>
-              <p className="text-xs text-muted uppercase tracking-wide">Full Collection Value</p>
-              <p className="text-2xl font-bold text-accent">{formatUsd(fullCollectionValue)}</p>
-            </div>
-          </div>
-
           <div className="mt-6 pt-6 border-t border-border flex flex-wrap gap-6">
             <div>
               <p className="text-xs text-muted uppercase tracking-wide">Paid (priced cards)</p>
