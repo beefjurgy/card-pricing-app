@@ -31,7 +31,7 @@ interface CachedBuzz {
 // (people actually listing copies for sale) has to line up too for the
 // hottest label.
 export interface HeatScore {
-  label: "Trending" | "Active" | "Quiet";
+  label: "High Buzz" | "Rising Buzz" | "Low Buzz";
   emoji: string;
   mentions7d: number;
   mentions30d: number;
@@ -61,18 +61,18 @@ function daysAgo(dateStr: string | null): number | null {
 }
 
 // Fire only when both signals back each other up; a single strong signal
-// (lots of news, no real listings — or vice versa) tops out at "Active".
+// (lots of news, no real listings — or vice versa) tops out at "Rising Buzz".
 function computeHeatScore(mentions7d: number, mentions30d: number, listingCount: number | null): HeatScore {
   const hasListingSignal = listingCount !== null && listingCount >= 10;
   const hasMentionSignal = mentions7d >= 3;
 
   if (hasMentionSignal && hasListingSignal) {
-    return { label: "Trending", emoji: "🔥", mentions7d, mentions30d, listingCount };
+    return { label: "High Buzz", emoji: "🔥", mentions7d, mentions30d, listingCount };
   }
   if (hasMentionSignal || mentions30d >= 3 || (listingCount !== null && listingCount >= 5)) {
-    return { label: "Active", emoji: "📈", mentions7d, mentions30d, listingCount };
+    return { label: "Rising Buzz", emoji: "📈", mentions7d, mentions30d, listingCount };
   }
-  return { label: "Quiet", emoji: "📉", mentions7d, mentions30d, listingCount };
+  return { label: "Low Buzz", emoji: "📉", mentions7d, mentions30d, listingCount };
 }
 
 // Same undocumented ESPN site API used for career stats — only NBA/NFL

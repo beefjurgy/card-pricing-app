@@ -15,9 +15,9 @@ const inputClass = "px-3 py-2 rounded-md bg-surface-2 border border-border focus
 // this sits right next to the name, so it should read as a headline stat,
 // not just another metadata tag.
 const HEAT_STYLE: Record<HeatScore["label"], string> = {
-  Trending: "bg-down text-white",
-  Active: "bg-up text-white",
-  Quiet: "bg-surface-2 text-muted border border-border",
+  "High Buzz": "bg-down text-white",
+  "Rising Buzz": "bg-up text-white",
+  "Low Buzz": "bg-surface-2 text-muted border border-border",
 };
 
 export function CardIdentityEditor({

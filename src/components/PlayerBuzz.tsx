@@ -12,7 +12,7 @@ interface BuzzItem {
 }
 
 export interface HeatScore {
-  label: "Trending" | "Active" | "Quiet";
+  label: "High Buzz" | "Rising Buzz" | "Low Buzz";
   emoji: string;
   mentions7d: number;
   mentions30d: number;
