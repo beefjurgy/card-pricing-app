@@ -63,7 +63,9 @@ function LibraryPageInner() {
   // one clicked this session) is left alone.
   const appliedDefaultRef = useRef(false);
   useEffect(() => {
-    if (!cards || appliedDefaultRef.current) return;
+    // A logged-out visitor sees the landing page, not this filtered grid —
+    // none of this filter/URL state is relevant until they're signed in.
+    if (!isOwner || !cards || appliedDefaultRef.current) return;
     appliedDefaultRef.current = true;
     const hasAnyFilter =
       searchParams.get("sport") ||
@@ -78,6 +80,7 @@ function LibraryPageInner() {
   }, [cards]);
 
   useEffect(() => {
+    if (!isOwner) return;
     const params = new URLSearchParams();
     if (sortBy !== "recent") params.set("sort", sortBy);
     if (sportFilter) params.set("sport", sportFilter);
@@ -89,7 +92,7 @@ function LibraryPageInner() {
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     const query = params.toString();
     router.replace(query ? `/?${query}` : "/", { scroll: false });
-  }, [sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery, router]);
+  }, [isOwner, sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery, router]);
 
   useEffect(() => {
     fetch("/api/library")
