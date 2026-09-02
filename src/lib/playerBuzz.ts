@@ -4,8 +4,13 @@ import { Sport } from "./types";
 // News is time-sensitive, unlike career totals — a much shorter TTL than
 // careerStats.ts's 6-hour cache keeps this reasonably fresh without hitting
 // these APIs (one undocumented, one rate-limited to 500/day) on every view.
+// Only the ESPN/NYT fetch results are cached here — listing count is
+// per-request (passed in from the caller, who already has it from the
+// same eBay search the listings section makes) and combined into the
+// heat score fresh each call, so a changed listing count never needs a
+// wasted re-fetch of news that hasn't changed.
 const CACHE_TTL_MS = 60 * 60 * 1000;
-const cache = new Map<string, { value: PlayerBuzz; expiresAt: number }>();
+const cache = new Map<string, { value: CachedBuzz; expiresAt: number }>();
 
 export interface TrendingItem {
   source: "ESPN" | "NYT";
@@ -14,20 +19,28 @@ export interface TrendingItem {
   publishedDate: string | null;
 }
 
-// A simple mention-frequency score from ESPN coverage specifically (not
-// NYT) — ESPN's per-athlete news feed is dense enough (video hits, fantasy
-// mentions, beat-writer stories) for volume/recency to mean something;
-// NYT's much sparser sports coverage would just show 0-1 almost always.
-export interface EspnBuzzScore {
-  label: "Trending" | "Active" | "Quiet";
-  emoji: string;
+interface CachedBuzz {
+  items: TrendingItem[];
   mentions7d: number;
   mentions30d: number;
 }
 
+// Combines ESPN mention frequency with how many active eBay listings exist
+// for this specific card — media buzz alone can be noisy (a single video
+// clip counts the same as a big trade story), so real market interest
+// (people actually listing copies for sale) has to line up too for the
+// hottest label.
+export interface HeatScore {
+  label: "Trending" | "Active" | "Quiet";
+  emoji: string;
+  mentions7d: number;
+  mentions30d: number;
+  listingCount: number | null;
+}
+
 export interface PlayerBuzz {
   items: TrendingItem[];
-  espnBuzz: EspnBuzzScore | null;
+  heat: HeatScore | null;
 }
 
 async function fetchJson(url: string): Promise<unknown | null> {
@@ -47,13 +60,19 @@ function daysAgo(dateStr: string | null): number | null {
   return ms / (24 * 60 * 60 * 1000);
 }
 
-function computeEspnBuzzScore(items: TrendingItem[]): EspnBuzzScore {
-  const mentions7d = items.filter((i) => (daysAgo(i.publishedDate) ?? Infinity) <= 7).length;
-  const mentions30d = items.filter((i) => (daysAgo(i.publishedDate) ?? Infinity) <= 30).length;
+// Fire only when both signals back each other up; a single strong signal
+// (lots of news, no real listings — or vice versa) tops out at "Active".
+function computeHeatScore(mentions7d: number, mentions30d: number, listingCount: number | null): HeatScore {
+  const hasListingSignal = listingCount !== null && listingCount >= 10;
+  const hasMentionSignal = mentions7d >= 3;
 
-  if (mentions7d >= 3) return { label: "Trending", emoji: "🔥", mentions7d, mentions30d };
-  if (mentions7d >= 1 || mentions30d >= 3) return { label: "Active", emoji: "📰", mentions7d, mentions30d };
-  return { label: "Quiet", emoji: "➖", mentions7d, mentions30d };
+  if (hasMentionSignal && hasListingSignal) {
+    return { label: "Trending", emoji: "🔥", mentions7d, mentions30d, listingCount };
+  }
+  if (hasMentionSignal || mentions30d >= 3 || (listingCount !== null && listingCount >= 5)) {
+    return { label: "Active", emoji: "📰", mentions7d, mentions30d, listingCount };
+  }
+  return { label: "Quiet", emoji: "➖", mentions7d, mentions30d, listingCount };
 }
 
 // Same undocumented ESPN site API used for career stats — only NBA/NFL
@@ -66,12 +85,13 @@ const ESPN_SPORT_LEAGUE: Partial<Record<Sport, { sport: string; league: string; 
 
 interface EspnNewsResult {
   items: TrendingItem[];
-  buzz: EspnBuzzScore | null;
+  mentions7d: number;
+  mentions30d: number;
 }
 
 async function fetchEspnNews(player: string, sport: Sport): Promise<EspnNewsResult> {
   const config = ESPN_SPORT_LEAGUE[sport];
-  if (!config) return { items: [], buzz: null };
+  if (!config) return { items: [], mentions7d: 0, mentions30d: 0 };
 
   const search = (await fetchJson(
     `https://site.web.api.espn.com/apis/search/v2?query=${encodeURIComponent(player)}&sport=${config.sport}`
@@ -80,7 +100,7 @@ async function fetchEspnNews(player: string, sport: Sport): Promise<EspnNewsResu
     ?.flatMap((r) => r.contents ?? [])
     .find((c) => c.type === "player" && c.sport === config.sport && c.description === config.leagueAbbrev)?.uid;
   const athleteId = athleteUid?.match(/a:(\d+)/)?.[1];
-  if (!athleteId) return { items: [], buzz: null };
+  if (!athleteId) return { items: [], mentions7d: 0, mentions30d: 0 };
 
   const overview = (await fetchJson(
     `https://site.web.api.espn.com/apis/common/v3/sports/${config.sport}/${config.league}/athletes/${athleteId}/overview`
@@ -97,7 +117,11 @@ async function fetchEspnNews(player: string, sport: Sport): Promise<EspnNewsResu
     }))
     .filter((item) => item.headline && item.url);
 
-  return { items: allItems.slice(0, 5), buzz: computeEspnBuzzScore(allItems) };
+  return {
+    items: allItems.slice(0, 5),
+    mentions7d: allItems.filter((i) => (daysAgo(i.publishedDate) ?? Infinity) <= 7).length,
+    mentions30d: allItems.filter((i) => (daysAgo(i.publishedDate) ?? Infinity) <= 30).length,
+  };
 }
 
 // NYT's Article Search API — official, free (500 requests/day), needs a
@@ -127,15 +151,20 @@ async function fetchNytNews(player: string): Promise<TrendingItem[]> {
     .filter((item) => item.headline && item.url);
 }
 
-export async function getTrendingBuzz(player: string, sport: Sport): Promise<PlayerBuzz> {
+async function getCachedBuzz(player: string, sport: Sport): Promise<CachedBuzz> {
   const key = `${sport}:${player.toLowerCase()}`;
   const cached = cache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
 
   const [espn, nyt] = await Promise.all([fetchEspnNews(player, sport), fetchNytNews(player)]);
   const items = [...espn.items, ...nyt].sort((a, b) => (b.publishedDate ?? "").localeCompare(a.publishedDate ?? ""));
-  const value: PlayerBuzz = { items, espnBuzz: espn.buzz };
+  const value: CachedBuzz = { items, mentions7d: espn.mentions7d, mentions30d: espn.mentions30d };
 
   cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
   return value;
+}
+
+export async function getTrendingBuzz(player: string, sport: Sport, listingCount: number | null): Promise<PlayerBuzz> {
+  const { items, mentions7d, mentions30d } = await getCachedBuzz(player, sport);
+  return { items, heat: computeHeatScore(mentions7d, mentions30d, listingCount) };
 }

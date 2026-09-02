@@ -28,7 +28,15 @@ function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-export function EbayListings({ identity }: { identity: CardIdentity }) {
+export function EbayListings({
+  identity,
+  onListingCountChange,
+}: {
+  identity: CardIdentity;
+  // Lets the card page reuse this same search's result count elsewhere
+  // (the buzz/heat score) instead of making a second identical eBay call.
+  onListingCountChange?: (count: number) => void;
+}) {
   const [result, setResult] = useState<EbaySearchResult | null>(null);
 
   useEffect(() => {
@@ -40,7 +48,10 @@ export function EbayListings({ identity }: { identity: CardIdentity }) {
     })
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled) setResult(data);
+        if (!cancelled) {
+          setResult(data);
+          onListingCountChange?.(data.listings?.length ?? 0);
+        }
       })
       .catch(() => {
         if (!cancelled) {

@@ -59,6 +59,7 @@ function CardDetailPageInner() {
   const [lightboxSide, setLightboxSide] = useState<"front" | "back" | null>(null);
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
+  const [ebayListingCount, setEbayListingCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/library/${params.id}`)
@@ -68,6 +69,7 @@ function CardDetailPageInner() {
     // reset it on every navigation, whether via Prev/Next, arrow keys, or a
     // direct link, not just the explicit lightbox-open click handlers.
     setZoomed(false);
+    setEbayListingCount(null);
   }, [params.id]);
 
   async function toggleFeatured() {
@@ -333,9 +335,9 @@ function CardDetailPageInner() {
             card.grade && <PopulationLinkOut gradingCompany={card.gradingCompany} certNumber={card.certNumber} />
           )}
 
-          <EbayListings identity={card} />
+          <EbayListings identity={card} onListingCountChange={setEbayListingCount} />
 
-          <PlayerBuzz identity={card} />
+          <PlayerBuzz identity={card} listingCount={ebayListingCount} />
 
           {recentSales.length > 0 && (
             <div className="rounded-xl border border-border bg-surface p-5">

@@ -11,14 +11,15 @@ interface BuzzItem {
   publishedDate: string | null;
 }
 
-interface EspnBuzzScore {
+interface HeatScore {
   label: "Trending" | "Active" | "Quiet";
   emoji: string;
   mentions7d: number;
   mentions30d: number;
+  listingCount: number | null;
 }
 
-const BUZZ_STYLE: Record<EspnBuzzScore["label"], string> = {
+const HEAT_STYLE: Record<HeatScore["label"], string> = {
   Trending: "bg-down/10 text-down",
   Active: "bg-up/10 text-up",
   Quiet: "bg-surface-2 text-muted",
@@ -29,24 +30,24 @@ function formatDate(dateStr: string | null): string {
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
+export function PlayerBuzz({ identity, listingCount }: { identity: CardIdentity; listingCount: number | null }) {
   const [items, setItems] = useState<BuzzItem[] | null>(null);
-  const [espnBuzz, setEspnBuzz] = useState<EspnBuzzScore | null>(null);
+  const [heat, setHeat] = useState<HeatScore | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setItems(null);
-    setEspnBuzz(null);
+    setHeat(null);
     fetch("/api/trending", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ player: identity.player, sport: identity.sport }),
+      body: JSON.stringify({ player: identity.player, sport: identity.sport, listingCount: null }),
     })
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) {
           setItems(data.items ?? []);
-          setEspnBuzz(data.espnBuzz ?? null);
+          setHeat(data.heat ?? null);
         }
       })
       .catch(() => {
@@ -55,7 +56,26 @@ export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [identity.player, identity.sport]);
+
+  // The eBay listing count arrives slightly later, from the sibling
+  // EbayListings component's own fetch (avoids a duplicate eBay search) —
+  // once it does, refresh just the heat score. Cheap: the server caches
+  // ESPN/NYT results separately from the score, so this doesn't re-hit
+  // either API or reset the visible headline list back to "Loading…".
+  useEffect(() => {
+    if (listingCount === null) return;
+    fetch("/api/trending", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ player: identity.player, sport: identity.sport, listingCount }),
+    })
+      .then((r) => r.json())
+      .then((data) => setHeat(data.heat ?? null))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listingCount]);
 
   if (items && items.length === 0) return null;
 
@@ -63,12 +83,14 @@ export function PlayerBuzz({ identity }: { identity: CardIdentity }) {
     <div className="rounded-xl border border-border bg-surface p-5">
       <div className="flex items-center justify-between mb-3">
         <SectionHeading>In the News</SectionHeading>
-        {espnBuzz && (
+        {heat && (
           <span
-            title={`${espnBuzz.mentions7d} ESPN mention${espnBuzz.mentions7d === 1 ? "" : "s"} in the last 7 days, ${espnBuzz.mentions30d} in the last 30`}
-            className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${BUZZ_STYLE[espnBuzz.label]}`}
+            title={`${heat.mentions7d} ESPN mention${heat.mentions7d === 1 ? "" : "s"} in the last 7 days, ${heat.mentions30d} in the last 30${
+              heat.listingCount !== null ? ` · ${heat.listingCount} active eBay listing${heat.listingCount === 1 ? "" : "s"}` : ""
+            }`}
+            className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${HEAT_STYLE[heat.label]}`}
           >
-            {espnBuzz.emoji} {espnBuzz.label}
+            {heat.emoji} {heat.label}
           </span>
         )}
       </div>
