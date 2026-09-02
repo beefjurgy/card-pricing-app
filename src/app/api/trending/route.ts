@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTrendingBuzz } from "@/lib/trending";
+import { getTrendingBuzz } from "@/lib/playerBuzz";
 import { Sport } from "@/lib/types";
 
 export async function POST(req: NextRequest) {
