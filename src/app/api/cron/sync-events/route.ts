@@ -92,17 +92,7 @@ async function fetchSeatGeek(): Promise<CardEvent[]> {
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
-  const authHeader = req.headers.get("authorization");
-  if (new URL(req.url).searchParams.get("debug") === "1") {
-    return NextResponse.json({
-      hasSecret: Boolean(cronSecret),
-      secretLength: cronSecret?.length ?? 0,
-      hasAuthHeader: Boolean(authHeader),
-      authHeaderLength: authHeader?.length ?? 0,
-      matches: authHeader === `Bearer ${cronSecret}`,
-    });
-  }
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  if (cronSecret && req.headers.get("authorization") !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
