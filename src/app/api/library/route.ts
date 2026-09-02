@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     purchaseDate,
     purchasePlatform,
     isFeatured: false,
+    isPublic: true,
     description: null,
     descriptionVoice: null,
   };
