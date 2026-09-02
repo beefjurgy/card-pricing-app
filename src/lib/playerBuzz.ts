@@ -70,9 +70,9 @@ function computeHeatScore(mentions7d: number, mentions30d: number, listingCount:
     return { label: "Trending", emoji: "🔥", mentions7d, mentions30d, listingCount };
   }
   if (hasMentionSignal || mentions30d >= 3 || (listingCount !== null && listingCount >= 5)) {
-    return { label: "Active", emoji: "📰", mentions7d, mentions30d, listingCount };
+    return { label: "Active", emoji: "📈", mentions7d, mentions30d, listingCount };
   }
-  return { label: "Quiet", emoji: "➖", mentions7d, mentions30d, listingCount };
+  return { label: "Quiet", emoji: "📉", mentions7d, mentions30d, listingCount };
 }
 
 // Same undocumented ESPN site API used for career stats — only NBA/NFL

@@ -11,7 +11,7 @@ interface BuzzItem {
   publishedDate: string | null;
 }
 
-interface HeatScore {
+export interface HeatScore {
   label: "Trending" | "Active" | "Quiet";
   emoji: string;
   mentions7d: number;
@@ -19,25 +19,29 @@ interface HeatScore {
   listingCount: number | null;
 }
 
-const HEAT_STYLE: Record<HeatScore["label"], string> = {
-  Trending: "bg-down/10 text-down",
-  Active: "bg-up/10 text-up",
-  Quiet: "bg-surface-2 text-muted",
-};
-
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "";
   return new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function PlayerBuzz({ identity, listingCount }: { identity: CardIdentity; listingCount: number | null }) {
+export function PlayerBuzz({
+  identity,
+  listingCount,
+  onHeatChange,
+}: {
+  identity: CardIdentity;
+  listingCount: number | null;
+  // The heat badge itself now renders up by the player's name (see
+  // CardIdentityEditor) — this still owns the fetch (it already needs the
+  // same data for the headline list) and just reports the score upward.
+  onHeatChange?: (heat: HeatScore | null) => void;
+}) {
   const [items, setItems] = useState<BuzzItem[] | null>(null);
-  const [heat, setHeat] = useState<HeatScore | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setItems(null);
-    setHeat(null);
+    onHeatChange?.(null);
     fetch("/api/trending", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -47,7 +51,7 @@ export function PlayerBuzz({ identity, listingCount }: { identity: CardIdentity;
       .then((data) => {
         if (!cancelled) {
           setItems(data.items ?? []);
-          setHeat(data.heat ?? null);
+          onHeatChange?.(data.heat ?? null);
         }
       })
       .catch(() => {
@@ -72,7 +76,7 @@ export function PlayerBuzz({ identity, listingCount }: { identity: CardIdentity;
       body: JSON.stringify({ player: identity.player, sport: identity.sport, listingCount }),
     })
       .then((r) => r.json())
-      .then((data) => setHeat(data.heat ?? null))
+      .then((data) => onHeatChange?.(data.heat ?? null))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listingCount]);
@@ -81,19 +85,7 @@ export function PlayerBuzz({ identity, listingCount }: { identity: CardIdentity;
 
   return (
     <div className="rounded-xl border border-border bg-surface p-5">
-      <div className="flex items-center justify-between mb-3">
-        <SectionHeading>In the News</SectionHeading>
-        {heat && (
-          <span
-            title={`${heat.mentions7d} ESPN mention${heat.mentions7d === 1 ? "" : "s"} in the last 7 days, ${heat.mentions30d} in the last 30${
-              heat.listingCount !== null ? ` · ${heat.listingCount} active eBay listing${heat.listingCount === 1 ? "" : "s"}` : ""
-            }`}
-            className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${HEAT_STYLE[heat.label]}`}
-          >
-            {heat.emoji} {heat.label}
-          </span>
-        )}
-      </div>
+      <SectionHeading className="mb-3">In the News</SectionHeading>
       {!items ? (
         <p className="text-sm text-muted">Loading…</p>
       ) : (

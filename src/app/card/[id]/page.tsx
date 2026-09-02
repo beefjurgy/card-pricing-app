@@ -13,7 +13,7 @@ import { PopulationCard } from "@/components/PopulationCard";
 import { PopulationLinkOut } from "@/components/PopulationLinkOut";
 import { SalesChart } from "@/components/SalesChart";
 import { EbayListings } from "@/components/EbayListings";
-import { PlayerBuzz } from "@/components/PlayerBuzz";
+import { PlayerBuzz, HeatScore } from "@/components/PlayerBuzz";
 import { ShopSupplies } from "@/components/ShopSupplies";
 import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
@@ -60,6 +60,7 @@ function CardDetailPageInner() {
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
   const [ebayListingCount, setEbayListingCount] = useState<number | null>(null);
+  const [heat, setHeat] = useState<HeatScore | null>(null);
 
   useEffect(() => {
     fetch(`/api/library/${params.id}`)
@@ -70,6 +71,7 @@ function CardDetailPageInner() {
     // direct link, not just the explicit lightbox-open click handlers.
     setZoomed(false);
     setEbayListingCount(null);
+    setHeat(null);
   }, [params.id]);
 
   async function toggleFeatured() {
@@ -305,7 +307,7 @@ function CardDetailPageInner() {
         </div>
 
         <div className="space-y-6 min-w-0">
-          <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} />
+          <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} heat={heat} />
 
           <ValuationCard
             valuation={card.valuation}
@@ -337,7 +339,7 @@ function CardDetailPageInner() {
 
           <EbayListings identity={card} onListingCountChange={setEbayListingCount} />
 
-          <PlayerBuzz identity={card} listingCount={ebayListingCount} />
+          <PlayerBuzz identity={card} listingCount={ebayListingCount} onHeatChange={setHeat} />
 
           {recentSales.length > 0 && (
             <div className="rounded-xl border border-border bg-surface p-5">

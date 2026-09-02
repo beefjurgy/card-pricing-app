@@ -5,19 +5,31 @@ import { CardIdentity, LibraryCard, Sport } from "@/lib/types";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
 import { getSetInfoUrl } from "@/lib/platformLinks";
 import { CopyCertButton } from "./CopyCertButton";
+import { HeatScore } from "./PlayerBuzz";
 
 const SPORTS: Sport[] = ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"];
 
 const inputClass = "px-3 py-2 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none";
 
+// Bolder/filled than the other pill-style badges in the header row below —
+// this sits right next to the name, so it should read as a headline stat,
+// not just another metadata tag.
+const HEAT_STYLE: Record<HeatScore["label"], string> = {
+  Trending: "bg-down text-white",
+  Active: "bg-up text-white",
+  Quiet: "bg-surface-2 text-muted border border-border",
+};
+
 export function CardIdentityEditor({
   card,
   canEdit,
   onUpdate,
+  heat,
 }: {
   card: LibraryCard;
   canEdit: boolean;
   onUpdate: (card: LibraryCard) => void;
+  heat?: HeatScore | null;
 }) {
   const [editing, setEditing] = useState(false);
   const [identity, setIdentity] = useState<CardIdentity>(card);
@@ -191,7 +203,19 @@ export function CardIdentityEditor({
     <div>
       <p className="text-muted text-sm max-w-xl leading-snug">{title || "Unknown set"}</p>
       <div className="flex items-start justify-between gap-3">
-        <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-4xl font-bold tracking-tight">{card.player}</h1>
+          {heat && (
+            <span
+              title={`${heat.mentions7d} ESPN mention${heat.mentions7d === 1 ? "" : "s"} in the last 7 days, ${heat.mentions30d} in the last 30${
+                heat.listingCount !== null ? ` · ${heat.listingCount} active eBay listing${heat.listingCount === 1 ? "" : "s"}` : ""
+              }`}
+              className={`text-sm px-3 py-1 rounded-full font-semibold whitespace-nowrap ${HEAT_STYLE[heat.label]}`}
+            >
+              {heat.emoji} {heat.label}
+            </span>
+          )}
+        </div>
         {canEdit && (
           <button
             onClick={() => {
