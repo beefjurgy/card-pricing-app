@@ -73,6 +73,9 @@ export function Footer() {
             <Link href="/vocabulary" className="text-background/80 hover:text-background transition-colors">
               Lingo
             </Link>
+            <Link href="/events" className="text-background/80 hover:text-background transition-colors">
+              Card Shows
+            </Link>
             <Link href="/about" className="text-background/80 hover:text-background transition-colors">
               About
             </Link>
