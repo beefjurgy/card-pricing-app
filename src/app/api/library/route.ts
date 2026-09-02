@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addCard, readLibrary } from "@/lib/library";
+import { addCard, readLibrary, readLibraryForUser } from "@/lib/library";
 import { imageKey, uploadImage } from "@/lib/storage";
 import { getValuation } from "@/lib/valuation";
 import { CardIdentity, LibraryCard } from "@/lib/types";
@@ -12,9 +12,13 @@ async function saveUpload(file: File, id: string, suffix: string): Promise<strin
   return uploadImage(file, imageKey(id, suffix, file.type));
 }
 
+// Signed in: "my library" — only the caller's own cards, so a second
+// beta tester's "My Collection" never mixes in anyone else's. Signed out:
+// the full public set (redacted), which is what the logged-out landing
+// page's preview grid draws from.
 export async function GET() {
   const session = await auth();
-  const cards = await readLibrary();
+  const cards = session?.user?.id ? await readLibraryForUser(session.user.id) : await readLibrary();
   return NextResponse.json({ cards: cards.map((c) => redactForViewer(c, session?.user?.id)) });
 }
 
