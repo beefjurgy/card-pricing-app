@@ -25,3 +25,25 @@ export function getAmazonSearchUrl(query: string): string {
 export function hasAffiliateTag(): boolean {
   return Boolean(process.env.NEXT_PUBLIC_AMAZON_AFFILIATE_TAG);
 }
+
+// eBay Partner Network tracking params, appended to any existing ebay.com
+// URL (a listing page or a search-results page both work) — no redirect
+// wrapper needed, current EPN links are just tagged query params. mkrid is
+// the fixed US-marketplace rotation ID; toolid 10001 is EPN's generic
+// Link Generator tool ID. No-ops (returns the URL unchanged) until a real
+// campaign ID is configured.
+export function getEbayAffiliateUrl(url: string): string {
+  const campaignId = process.env.NEXT_PUBLIC_EBAY_CAMPAIGN_ID;
+  if (!campaignId) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.set("mkevt", "1");
+    u.searchParams.set("mkcid", "1");
+    u.searchParams.set("mkrid", "711-53200-19255-0");
+    u.searchParams.set("campid", campaignId);
+    u.searchParams.set("toolid", "10001");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CardIdentity } from "@/lib/types";
+import { getEbayAffiliateUrl } from "@/lib/affiliateLinks";
 import { SectionHeading } from "./SectionHeading";
 
 interface EbayListing {
@@ -98,7 +99,7 @@ export function EbayListings({ identity }: { identity: CardIdentity }) {
           {displayedListings.map((item) => (
             <a
               key={item.itemId}
-              href={item.itemWebUrl}
+              href={getEbayAffiliateUrl(item.itemWebUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-lg hover:bg-surface-2 transition-colors p-2 -m-2"

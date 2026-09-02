@@ -1,4 +1,5 @@
 import { CardIdentity } from "./types";
+import { getEbayAffiliateUrl } from "./affiliateLinks";
 
 // otherDetails is deliberately excluded — it's a free-form personal note
 // (e.g. "Color Match"), not a distinguishing search term, and mixing it into
@@ -108,7 +109,7 @@ export function getPlatformSearchUrl(platform: string, card: QueryFields): strin
 
   if (platform === "eBay") {
     const params = new URLSearchParams({ _nkw: query, LH_Sold: "1", LH_Complete: "1" });
-    return `https://www.ebay.com/sch/i.html?${params.toString()}`;
+    return getEbayAffiliateUrl(`https://www.ebay.com/sch/i.html?${params.toString()}`);
   }
 
   const domain = SITE_DOMAINS[platform];
