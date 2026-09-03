@@ -44,6 +44,9 @@ export function Footer() {
             </span>
           </div>
           <p className="text-background/70 mt-2 leading-relaxed">Everything about your collection in one place.</p>
+          <a href="mailto:cardnukes@gmail.com" className="block mt-2 text-background/80 hover:text-background transition-colors">
+            cardnukes@gmail.com
+          </a>
           <div className="mt-4">
             <SocialIcons />
           </div>
