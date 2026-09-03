@@ -6,6 +6,7 @@ import { getCertLookupUrl } from "@/lib/gradingLinks";
 import { getSetInfoUrl } from "@/lib/platformLinks";
 import { CopyCertButton } from "./CopyCertButton";
 import { HeatScore } from "./PlayerBuzz";
+import { CardReactions } from "./CardReactions";
 
 const SPORTS: Sport[] = ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"];
 
@@ -215,6 +216,9 @@ export function CardIdentityEditor({
               {heat.emoji} {heat.label}
             </span>
           )}
+          <div className="mt-2">
+            <CardReactions cardId={card.id} />
+          </div>
         </div>
         {canEdit && (
           <button
