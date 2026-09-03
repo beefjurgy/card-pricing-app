@@ -16,6 +16,7 @@ import { EbayListings } from "@/components/EbayListings";
 import { PlayerBuzz, HeatScore } from "@/components/PlayerBuzz";
 import { ShopSupplies } from "@/components/ShopSupplies";
 import { CommentThread } from "@/components/CommentThread";
+import { CardReactions } from "@/components/CardReactions";
 import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -418,6 +419,8 @@ function CardDetailPageInner() {
               </div>
             </div>
           )}
+
+          <CardReactions cardId={card.id} />
 
           <CommentThread apiBase={`/api/library/${card.id}/comments`} canModerate={isOwner} />
 
