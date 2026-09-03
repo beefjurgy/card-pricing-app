@@ -75,12 +75,16 @@ function computeHeatScore(mentions7d: number, mentions30d: number, listingCount:
   return { label: "Low Buzz", emoji: "📉", mentions7d, mentions30d, listingCount };
 }
 
-// Same undocumented ESPN site API used for career stats — only NBA/NFL
-// have this athlete-search + overview shape confirmed working; MLB/NHL/
-// soccer players fall through to NYT-only below.
+// Same undocumented ESPN site API used for career stats — confirmed
+// working for all four here (real per-player news items, verified via
+// direct curl for each league). Soccer has no single ESPN league the way
+// the others do (it spans many competitions), so it falls through to
+// NYT-only below, same reasoning as careerStats.ts's soccer handling.
 const ESPN_SPORT_LEAGUE: Partial<Record<Sport, { sport: string; league: string; leagueAbbrev: string }>> = {
   Basketball: { sport: "basketball", league: "nba", leagueAbbrev: "NBA" },
   Football: { sport: "football", league: "nfl", leagueAbbrev: "NFL" },
+  Baseball: { sport: "baseball", league: "mlb", leagueAbbrev: "MLB" },
+  Hockey: { sport: "hockey", league: "nhl", leagueAbbrev: "NHL" },
 };
 
 interface EspnNewsResult {
