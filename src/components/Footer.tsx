@@ -35,8 +35,8 @@ function SocialIcons() {
 export function Footer() {
   return (
     <footer className="bg-accent-2 text-background">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid sm:grid-cols-3 gap-8 text-sm">
-        <div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 flex flex-col sm:flex-row sm:justify-between gap-8 text-sm">
+        <div className="sm:max-w-xs">
           <div className="flex items-center gap-2">
             <Logo size={24} />
             <span className="font-bold tracking-tight">
@@ -44,15 +44,15 @@ export function Footer() {
             </span>
           </div>
           <p className="text-background/70 mt-2 leading-relaxed">Everything about your collection in one place.</p>
-          <a href="mailto:cardnukes@gmail.com" className="block mt-2 text-background/80 hover:text-background transition-colors">
-            cardnukes@gmail.com
-          </a>
-          <div className="mt-4">
+          <div className="mt-4 flex items-center gap-4">
+            <a href="mailto:cardnukes@gmail.com" className="text-background/80 hover:text-background transition-colors">
+              cardnukes@gmail.com
+            </a>
             <SocialIcons />
           </div>
         </div>
 
-        <div>
+        <div className="sm:max-w-xs">
           <p className="font-medium uppercase tracking-wide text-xs text-background/50 mb-3">How the estimates work</p>
           <p className="text-background/70 leading-relaxed">
             Valuations are estimates based on live eBay listings and other public data sources — not appraisals or
