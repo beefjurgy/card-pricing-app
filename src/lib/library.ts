@@ -90,6 +90,32 @@ export async function readLibrary(): Promise<LibraryCard[]> {
   return rows.map(rowToCard);
 }
 
+export interface ActivityItem {
+  card: LibraryCard;
+  ownerUsername: string;
+  ownerAvatarUrl: string | null;
+}
+
+// Same is_public filter as readLibrary — a card someone's hidden from
+// public view shouldn't leak into a follower's feed either.
+export async function readActivityFeed(followedUserIds: string[], limit: number): Promise<ActivityItem[]> {
+  if (followedUserIds.length === 0) return [];
+  const rows = (await sql`
+    SELECT c.*, u.username AS owner_username, COALESCE(u.avatar_url, u.image) AS owner_avatar_url
+    FROM cards c
+    JOIN users u ON u.id = c.user_id
+    WHERE c.user_id = ANY(${followedUserIds}) AND c.is_public = true AND u.username IS NOT NULL
+    ORDER BY c.date_added DESC
+    LIMIT ${limit}
+  `) as (CardRow & { owner_username: string; owner_avatar_url: string | null })[];
+
+  return rows.map((row) => ({
+    card: rowToCard(row),
+    ownerUsername: row.owner_username,
+    ownerAvatarUrl: row.owner_avatar_url,
+  }));
+}
+
 export async function readLibraryForUser(userId: string): Promise<LibraryCard[]> {
   const rows = (await sql`SELECT * FROM cards WHERE user_id = ${userId} ORDER BY date_added DESC`) as CardRow[];
   return rows.map(rowToCard);

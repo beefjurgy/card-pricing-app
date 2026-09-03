@@ -7,6 +7,7 @@ import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { CommentThread } from "@/components/CommentThread";
+import { FollowButton } from "@/components/FollowButton";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
@@ -106,7 +107,7 @@ export default function PublicProfilePage() {
         {user?.avatarUrl && (
           <Image src={user.avatarUrl} alt="" width={48} height={48} className="w-12 h-12 rounded-full object-cover" unoptimized />
         )}
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">@{username}</h1>
           <p className="text-muted text-sm">
             {cards && (
@@ -116,6 +117,7 @@ export default function PublicProfilePage() {
             )}
           </p>
         </div>
+        {user && session?.user?.id !== user.id && <FollowButton username={username} />}
       </div>
 
       {cards && cards.length > 1 && (
