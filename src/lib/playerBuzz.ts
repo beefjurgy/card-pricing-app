@@ -3,17 +3,16 @@ import { Sport } from "./types";
 
 // News is time-sensitive, unlike career totals — a much shorter TTL than
 // careerStats.ts's 6-hour cache keeps this reasonably fresh without hitting
-// these APIs (one undocumented, one rate-limited to 500/day) on every view.
-// Only the ESPN/NYT fetch results are cached here — listing count is
-// per-request (passed in from the caller, who already has it from the
-// same eBay search the listings section makes) and combined into the
-// heat score fresh each call, so a changed listing count never needs a
-// wasted re-fetch of news that hasn't changed.
+// this (undocumented) API on every view. Only the ESPN fetch results are
+// cached here — listing count is per-request (passed in from the caller,
+// who already has it from the same eBay search the listings section
+// makes) and combined into the heat score fresh each call, so a changed
+// listing count never needs a wasted re-fetch of news that hasn't changed.
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const cache = new Map<string, { value: CachedBuzz; expiresAt: number }>();
 
 export interface TrendingItem {
-  source: "ESPN" | "NYT";
+  source: "ESPN";
   headline: string;
   url: string;
   publishedDate: string | null;
@@ -78,8 +77,10 @@ function computeHeatScore(mentions7d: number, mentions30d: number, listingCount:
 // Same undocumented ESPN site API used for career stats — confirmed
 // working for all four here (real per-player news items, verified via
 // direct curl for each league). Soccer has no single ESPN league the way
-// the others do (it spans many competitions), so it falls through to
-// NYT-only below, same reasoning as careerStats.ts's soccer handling.
+// the others do (it spans many competitions), so it gets no buzz data at
+// all — NYT was the fallback for that gap, but its Article Search API
+// wasn't actually filtering by query for this account (verified: results
+// were identical for unrelated queries), so it's been dropped entirely.
 const ESPN_SPORT_LEAGUE: Partial<Record<Sport, { sport: string; league: string; leagueAbbrev: string }>> = {
   Basketball: { sport: "basketball", league: "nba", leagueAbbrev: "NBA" },
   Football: { sport: "football", league: "nfl", leagueAbbrev: "NFL" },
@@ -128,44 +129,13 @@ async function fetchEspnNews(player: string, sport: Sport): Promise<EspnNewsResu
   };
 }
 
-// NYT's Article Search API — official, free (500 requests/day), needs a
-// key from developer.nytimes.com. Works for any player regardless of
-// sport, unlike the ESPN path above.
-async function fetchNytNews(player: string): Promise<TrendingItem[]> {
-  const apiKey = process.env.NYT_API_KEY;
-  if (!apiKey) return [];
-
-  // No news_desk/section filter — verified live that NYT's sports coverage
-  // isn't reliably tagged news_desk:"Sports" (confirmed empirically: even
-  // an unambiguous query like "NFL" returns zero hits filtered that way).
-  // A distinctive full player name is specific enough on its own.
-  const data = (await fetchJson(
-    `https://api.nytimes.com/svc/search/v2/articlesearch.json?${new URLSearchParams({
-      q: player,
-      sort: "newest",
-      "api-key": apiKey,
-    })}`
-  )) as { response?: { docs?: { headline?: { main?: string }; web_url?: string; pub_date?: string }[] } } | null;
-
-  return (data?.response?.docs ?? [])
-    .slice(0, 5)
-    .map((doc) => ({
-      source: "NYT" as const,
-      headline: doc.headline?.main ?? "",
-      url: doc.web_url ?? "",
-      publishedDate: doc.pub_date ?? null,
-    }))
-    .filter((item) => item.headline && item.url);
-}
-
 async function getCachedBuzz(player: string, sport: Sport): Promise<CachedBuzz> {
   const key = `${sport}:${player.toLowerCase()}`;
   const cached = cache.get(key);
   if (cached && cached.expiresAt > Date.now()) return cached.value;
 
-  const [espn, nyt] = await Promise.all([fetchEspnNews(player, sport), fetchNytNews(player)]);
-  const items = [...espn.items, ...nyt].sort((a, b) => (b.publishedDate ?? "").localeCompare(a.publishedDate ?? ""));
-  const value: CachedBuzz = { items, mentions7d: espn.mentions7d, mentions30d: espn.mentions30d };
+  const espn = await fetchEspnNews(player, sport);
+  const value: CachedBuzz = { items: espn.items, mentions7d: espn.mentions7d, mentions30d: espn.mentions30d };
 
   cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
   return value;

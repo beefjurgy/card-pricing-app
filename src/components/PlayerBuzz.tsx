@@ -5,7 +5,7 @@ import { CardIdentity } from "@/lib/types";
 import { SectionHeading } from "./SectionHeading";
 
 interface BuzzItem {
-  source: "ESPN" | "NYT";
+  source: "ESPN";
   headline: string;
   url: string;
   publishedDate: string | null;
@@ -66,8 +66,8 @@ export function PlayerBuzz({
   // The eBay listing count arrives slightly later, from the sibling
   // EbayListings component's own fetch (avoids a duplicate eBay search) —
   // once it does, refresh just the heat score. Cheap: the server caches
-  // ESPN/NYT results separately from the score, so this doesn't re-hit
-  // either API or reset the visible headline list back to "Loading…".
+  // ESPN results separately from the score, so this doesn't re-hit the
+  // API or reset the visible headline list back to "Loading…".
   useEffect(() => {
     if (listingCount === null) return;
     fetch("/api/trending", {
