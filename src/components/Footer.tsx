@@ -1,18 +1,14 @@
 import Link from "next/link";
 import { Logo } from "./Logo";
 
-// Placeholder for the future multi-user build — no real CardNukes social
-// profiles exist yet, so these link to the platforms' own homepages rather
-// than a fabricated profile URL. Swap in the real profile links once
-// accounts exist.
 function SocialIcons() {
   return (
     <div className="flex items-center gap-4">
       <a
-        href="https://www.instagram.com/"
+        href="https://www.instagram.com/cardnukes/"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Instagram (coming soon)"
+        aria-label="Instagram"
         className="text-background/60 hover:text-background transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -22,10 +18,10 @@ function SocialIcons() {
         </svg>
       </a>
       <a
-        href="https://www.tiktok.com/"
+        href="https://www.tiktok.com/@cardnukes"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="TikTok (coming soon)"
+        aria-label="TikTok"
         className="text-background/60 hover:text-background transition-colors"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
