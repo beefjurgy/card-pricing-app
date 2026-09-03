@@ -2,19 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
+import { CommentThread } from "@/components/CommentThread";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
 interface ProfileUser {
+  id: string;
   avatarUrl: string | null;
   username: string;
 }
 
 export default function PublicProfilePage() {
   const { username } = useParams<{ username: string }>();
+  const { data: session } = useSession();
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -179,6 +183,12 @@ export default function PublicProfilePage() {
           {sortedCards.map((card) => (
             <CardTile key={card.id} card={card} sortBy={sortBy} />
           ))}
+        </div>
+      )}
+
+      {user && (
+        <div className="mt-8">
+          <CommentThread apiBase={`/api/users/${username}/comments`} canModerate={session?.user?.id === user.id} />
         </div>
       )}
     </div>
