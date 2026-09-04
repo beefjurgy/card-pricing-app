@@ -45,6 +45,11 @@ export function ValuationCard({
 }) {
   const [refreshing, setRefreshing] = useState(false);
   const [confirmingOverride, setConfirmingOverride] = useState(false);
+  const [enteringOverride, setEnteringOverride] = useState(false);
+  const [overrideValue, setOverrideValue] = useState("");
+  const [overrideSource, setOverrideSource] = useState("");
+  const [savingOverride, setSavingOverride] = useState(false);
+  const [overrideError, setOverrideError] = useState<string | null>(null);
   const protectedValuation = isProtectedValuation(valuation.note);
 
   async function refresh(force = false) {
@@ -62,6 +67,34 @@ export function ValuationCard({
       }
     } finally {
       setRefreshing(false);
+    }
+  }
+
+  async function saveOverride() {
+    const parsed = parseFloat(overrideValue);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      setOverrideError("Enter a valid positive value.");
+      return;
+    }
+    setSavingOverride(true);
+    setOverrideError(null);
+    try {
+      const res = await fetch(`/api/library/${cardId}/override-valuation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: parsed, source: overrideSource }),
+      });
+      const data = await res.json();
+      if (data.card) {
+        onRefresh(data.card);
+        setEnteringOverride(false);
+        setOverrideValue("");
+        setOverrideSource("");
+      } else {
+        setOverrideError(data.error ?? "Couldn't save that value.");
+      }
+    } finally {
+      setSavingOverride(false);
     }
   }
 
@@ -105,20 +138,75 @@ export function ValuationCard({
               </button>
             )
           ) : (
-            <button
-              onClick={() => refresh()}
-              disabled={refreshing}
-              className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
-            >
-              {refreshing ? "Refreshing…" : "🔄 Refresh"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setEnteringOverride((v) => !v)}
+                className="text-xs text-background/70 hover:text-background transition-colors whitespace-nowrap"
+                title="Found a real sold comp (e.g. PSA's Auction Prices Realized)? Enter it here to replace the automatic estimate."
+              >
+                ✏️ Enter verified price
+              </button>
+              <button
+                onClick={() => refresh()}
+                disabled={refreshing}
+                className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40 whitespace-nowrap"
+              >
+                {refreshing ? "Refreshing…" : "🔄 Refresh"}
+              </button>
+            </div>
           ))}
         </div>
       </div>
 
+      {enteringOverride && !protectedValuation && (
+        <div className="border-t border-white/10 pt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-background/70">$</span>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={overrideValue}
+              onChange={(e) => setOverrideValue(e.target.value)}
+              placeholder="Verified sold price"
+              className="w-32 rounded-md bg-white/10 px-2 py-1 text-sm text-background placeholder:text-background/40 outline-none focus:ring-1 focus:ring-white/30"
+            />
+          </div>
+          <input
+            type="text"
+            value={overrideSource}
+            onChange={(e) => setOverrideSource(e.target.value)}
+            placeholder="Source (optional) — e.g. PSA Auction Prices Realized, 09/03/26"
+            className="w-full rounded-md bg-white/10 px-2 py-1 text-sm text-background placeholder:text-background/40 outline-none focus:ring-1 focus:ring-white/30"
+          />
+          {overrideError && <p className="text-xs text-red-300">{overrideError}</p>}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveOverride}
+              disabled={savingOverride}
+              className="text-xs font-medium text-background hover:opacity-80 transition-opacity disabled:opacity-40"
+            >
+              {savingOverride ? "Saving…" : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEnteringOverride(false);
+                setOverrideError(null);
+              }}
+              disabled={savingOverride}
+              className="text-xs text-background/70 hover:text-background transition-colors disabled:opacity-40"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-4 text-sm text-background">
         <span>
-          Range: {formatUsd(valuation.low)} – {formatUsd(valuation.high)}
+          {valuation.low === valuation.high
+            ? `Verified: ${formatUsd(valuation.low)}`
+            : `Range: ${formatUsd(valuation.low)} – ${formatUsd(valuation.high)}`}
         </span>
         <span className="text-lg" title={`Estimated at ${formatUsd(valuation.estimate)}`}>
           {valueEmoji(valuation.estimate)}
