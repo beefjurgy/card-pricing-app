@@ -176,6 +176,23 @@ function titleMentionsAnyOtherCompany(title: string, company: string): boolean {
   return KNOWN_GRADING_COMPANIES.some((candidate) => candidate !== upper && titleMentionsCompany(title, candidate));
 }
 
+// A title that names the SAME company but a DIFFERENT explicit grade number
+// (e.g. "PSA 8" for a PSA 6 card) is just as disqualifying as a different
+// company — it's confirmed proof this listing isn't the user's card, not
+// weak supporting evidence for it. This matters most for vintage/key cards
+// where grade swings the price far more than a couple percent (a PSA 8 or
+// even PSA 7 of a 1981 rookie can ask 2-4x what a real PSA 6 does), unlike a
+// modern common where adjacent grades are close enough to still be useful.
+// Only a listing with NO stated grade number at all (genuinely ambiguous,
+// not contradicted) stays eligible as weaker fallback evidence below.
+function titleStatesDifferentGrade(title: string, gradingCompany: string, grade: string): boolean {
+  const company = escapeRegExp(gradingCompany.trim());
+  const gradeNum = parseFloat(grade);
+  if (!company || Number.isNaN(gradeNum)) return false;
+  const match = title.match(new RegExp(`${company}\\D{0,10}(\\d{1,2}(?:\\.\\d)?)\\b`, "i"));
+  return match !== null && parseFloat(match[1]) !== gradeNum;
+}
+
 // Serial-numbered parallels print "x/y" (e.g. "38/75") directly on the card,
 // and sellers reliably carry the "/y" run size into listing titles even when
 // they describe the parallel name itself totally differently (e.g. "Wave
@@ -420,27 +437,35 @@ function extractPricesFromListings(
   // averaging everything in the bucket together or discarding real signal
   // too aggressively. In order of preference:
   //   1. Exact company+grade match (e.g. "PSA 10") — the real thing.
-  //   2. Same company, different grade (e.g. real "PSA 9" ask for a PSA 10
-  //      card), but only from the exact-tier query — confirms it's actually
-  //      this card's specific parallel, just an imperfect grade match.
-  //   3. Same company, different grade, from the broader tiers — weaker
-  //      (parallel isn't confirmed) but still same-company signal.
+  //   2. Same company mentioned, no grade number stated, from the exact-tier
+  //      query — confirms it's actually this card's specific parallel, grade
+  //      just unstated.
+  //   3. Same company mentioned, no grade number stated, from the broader
+  //      tiers — weaker (parallel isn't confirmed) but still same-company
+  //      signal.
   //   4. No company/grade mentioned at all, but exact-tier confirmed — the
   //      parallel is right, grade is just unstated.
-  // A listing that names a DIFFERENT company (e.g. "BGS" on a PSA card) is
-  // dropped outright at every tier — cross-company grades aren't comparable.
-  // A broad-tier listing with no grade mentioned at all is dropped too — that
-  // combination is how two listings for entirely different, much rarer
-  // parallels ("Purple Power Prizm /49", "Color Blast") once got averaged in
-  // as a comp for a plain "Green Prizm" card, since neither one contradicted
-  // anything, they just were never confirmed to be the right card either.
+  // A listing that names a DIFFERENT company (e.g. "BGS" on a PSA card), or
+  // the SAME company but an explicitly different grade number (e.g. "PSA 8"
+  // for a PSA 6 card), is dropped outright at every tier — both are confirmed
+  // proof the listing isn't this card, not weak supporting evidence for it.
+  // Grade swings price far more than a couple percent for a vintage/key card
+  // (a real PSA 8/PSA 7 asking price for a 1981 rookie once got averaged in
+  // as if it were a usable stand-in for a PSA 6 of the same card, inflating
+  // the estimate to 4x the card's real PSA-6 sold value). A broad-tier
+  // listing with no grade mentioned at all is dropped too — that combination
+  // is how two listings for entirely different, much rarer parallels
+  // ("Purple Power Prizm /49", "Color Blast") once got averaged in as a comp
+  // for a plain "Green Prizm" card, since neither one contradicted anything,
+  // they just were never confirmed to be the right card either.
   let matching = sameGradedBucket;
   if (isGraded) {
     const safe = sameGradedBucket.filter((l) => !titleMentionsAnyOtherCompany(l.title, identity.gradingCompany));
     const exact = safe.filter((l) => titleMatchesExactGrade(l.title, identity.gradingCompany, identity.grade));
-    const sameCompanyExactTier = safe.filter((l) => l.exactMatch && titleMentionsCompany(l.title, identity.gradingCompany));
-    const sameCompanyAnyTier = safe.filter((l) => titleMentionsCompany(l.title, identity.gradingCompany));
-    const ambiguousExactTier = safe.filter((l) => l.exactMatch);
+    const notContradicted = safe.filter((l) => !titleStatesDifferentGrade(l.title, identity.gradingCompany, identity.grade));
+    const sameCompanyExactTier = notContradicted.filter((l) => l.exactMatch && titleMentionsCompany(l.title, identity.gradingCompany));
+    const sameCompanyAnyTier = notContradicted.filter((l) => titleMentionsCompany(l.title, identity.gradingCompany));
+    const ambiguousExactTier = notContradicted.filter((l) => l.exactMatch);
 
     matching =
       exact.length > 0
