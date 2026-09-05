@@ -47,7 +47,17 @@ export function getPopReportUrl(gradingCompany: string): string {
 // /pgs/lookup path — also verified no query-param pre-fill.
 const CERT_LOOKUP_URLS: Record<string, (cert: string) => string> = {
   PSA: (cert) => `https://www.psacard.com/cert/${encodeURIComponent(cert)}`,
-  BGS: (cert) => `https://www.beckett.com/grading/card-lookup?cert=${encodeURIComponent(cert)}`,
+  // The old ?cert= param is dead — confirmed live (2026-09-04) that
+  // navigating to it fires no lookup API call at all. Beckett's actual
+  // card-lookup page reads item_id (the serial number, as printed on the
+  // slab) + item_type (BGS/BVG/BCCG) and calls its own
+  // /api/grading/lookup?category=...&serialNumber=... internally — verified
+  // from a real card's URL the user copied directly out of their own
+  // browser. That underlying API 403s from an automated browser (likely
+  // reCAPTCHA/bot-detection gating, same class of wall as PSA's cert pages),
+  // so this couldn't be fully end-to-end verified here, but the URL itself
+  // is the real one the site's own UI produces.
+  BGS: (cert) => `https://www.beckett.com/grading/card-lookup?item_id=${encodeURIComponent(cert)}&item_type=BGS`,
   SGC: () => `https://gosgc.com/cert-code-lookup`,
   CCG: () => `https://ccgrading.com/card-lookup/`,
   BGG: () => `https://gold-grade-hub.lovable.app/lookup`,
