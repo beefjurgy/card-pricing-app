@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+
+const BIO_MAX_LENGTH = 280;
 
 export default function AccountPage() {
   const { data: session, status, update } = useSession();
@@ -13,6 +15,23 @@ export default function AccountPage() {
   const [saved, setSaved] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [bio, setBioValue] = useState("");
+  const [savedBio, setSavedBio] = useState("");
+  const [bioSaving, setBioSaving] = useState(false);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [bioSaved, setBioSaved] = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+    fetch("/api/account/bio")
+      .then((r) => r.json())
+      .then((data) => {
+        setBioValue(data.bio ?? "");
+        setSavedBio(data.bio ?? "");
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
 
   if (status === "loading") return null;
 
@@ -81,6 +100,29 @@ export default function AccountPage() {
       setAvatarError(err instanceof Error ? err.message : "Could not upload photo.");
     } finally {
       setAvatarUploading(false);
+    }
+  }
+
+  async function handleSaveBio(e: React.FormEvent) {
+    e.preventDefault();
+    setBioSaving(true);
+    setBioError(null);
+    setBioSaved(false);
+    try {
+      const res = await fetch("/api/account/bio", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bio }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not save bio.");
+      setBioValue(data.bio ?? "");
+      setSavedBio(data.bio ?? "");
+      setBioSaved(true);
+    } catch (err) {
+      setBioError(err instanceof Error ? err.message : "Could not save bio.");
+    } finally {
+      setBioSaving(false);
     }
   }
 
@@ -156,6 +198,29 @@ export default function AccountPage() {
           className="px-4 py-2 rounded-md bg-accent-2 text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           {saving ? "Saving…" : "Save"}
+        </button>
+      </form>
+
+      <form onSubmit={handleSaveBio} className="space-y-3 mt-8">
+        <label className="block text-sm font-medium">Bio</label>
+        <textarea
+          value={bio}
+          onChange={(e) => setBioValue(e.target.value.slice(0, BIO_MAX_LENGTH))}
+          placeholder="Tell people a bit about your collection…"
+          rows={4}
+          className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-accent resize-none"
+        />
+        <p className="text-xs text-muted">
+          {bio.length}/{BIO_MAX_LENGTH} — shown on your public profile.
+        </p>
+        {bioError && <p className="text-xs text-down">{bioError}</p>}
+        {bioSaved && !bioError && <p className="text-xs text-up">Saved.</p>}
+        <button
+          type="submit"
+          disabled={bioSaving || bio === savedBio}
+          className="px-4 py-2 rounded-md bg-accent-2 text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+        >
+          {bioSaving ? "Saving…" : "Save"}
         </button>
       </form>
 

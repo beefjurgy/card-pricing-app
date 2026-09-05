@@ -15,6 +15,7 @@ interface ProfileUser {
   id: string;
   avatarUrl: string | null;
   username: string;
+  bio: string | null;
 }
 
 export default function PublicProfilePage() {
@@ -119,6 +120,8 @@ export default function PublicProfilePage() {
         </div>
         {user && session?.user?.id !== user.id && <FollowButton username={username} />}
       </div>
+
+      {user?.bio && <p className="text-sm text-foreground/90 leading-relaxed mb-6 whitespace-pre-wrap">{user.bio}</p>}
 
       {cards && cards.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">

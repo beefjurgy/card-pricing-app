@@ -12,6 +12,7 @@ export interface PublicUser {
   id: string;
   username: string;
   avatarUrl: string | null;
+  bio: string | null;
 }
 
 // Full name is never shown publicly (only @username) — see redactForViewer
@@ -20,10 +21,24 @@ export interface PublicUser {
 // the whole point of letting someone upload their own is to replace it.
 export async function getUserByUsername(username: string): Promise<PublicUser | null> {
   const rows = (await sql`
-    SELECT id, username, COALESCE(avatar_url, image) AS "avatarUrl"
+    SELECT id, username, COALESCE(avatar_url, image) AS "avatarUrl", bio
     FROM users WHERE username = ${username.toLowerCase()}
   `) as PublicUser[];
   return rows.length ? rows[0] : null;
+}
+
+export const BIO_MAX_LENGTH = 280;
+
+export async function getBio(userId: string): Promise<string | null> {
+  const rows = (await sql`SELECT bio FROM users WHERE id = ${userId}`) as { bio: string | null }[];
+  return rows[0]?.bio ?? null;
+}
+
+export async function setBio(userId: string, bio: string): Promise<string | null> {
+  const trimmed = bio.trim().slice(0, BIO_MAX_LENGTH);
+  const value = trimmed.length > 0 ? trimmed : null;
+  await sql`UPDATE users SET bio = ${value} WHERE id = ${userId}`;
+  return value;
 }
 
 export async function getAvatarUrl(userId: string): Promise<string | null> {
