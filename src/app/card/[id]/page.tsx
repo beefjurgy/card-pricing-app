@@ -62,6 +62,8 @@ function CardDetailPageInner() {
   const [zoomed, setZoomed] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
   const [togglingPublic, setTogglingPublic] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState<"front" | "back" | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [ebayListingCount, setEbayListingCount] = useState<number | null>(null);
   const [heat, setHeat] = useState<HeatScore | null>(null);
 
@@ -106,6 +108,27 @@ function CardDetailPageInner() {
       if (data.card) setCard(data.card);
     } finally {
       setTogglingPublic(false);
+    }
+  }
+
+  async function handleImageChange(side: "front" | "back", e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !card) return;
+    setImageError(null);
+    setUploadingImage(side);
+    try {
+      const formData = new FormData();
+      formData.append("side", side);
+      formData.append("image", file);
+      const res = await fetch(`/api/library/${card.id}/image`, { method: "PATCH", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not upload photo.");
+      if (data.card) setCard(data.card);
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : "Could not upload photo.");
+    } finally {
+      setUploadingImage(null);
     }
   }
 
@@ -280,9 +303,24 @@ function CardDetailPageInner() {
             ) : (
               <div className="w-full h-full flex items-center justify-center text-5xl">🃏</div>
             )}
+            {isOwner && (
+              <label
+                onClick={(e) => e.stopPropagation()}
+                className="absolute top-2 right-2 z-10 text-[10px] px-2 py-1 rounded-full bg-black/60 text-white border border-white/30 cursor-pointer hover:bg-black/80 transition-colors"
+              >
+                {uploadingImage === "front" ? "Uploading…" : "🔁 Replace"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange("front", e)}
+                  disabled={uploadingImage !== null}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
 
-          {card.backImageUrl && (
+          {card.backImageUrl ? (
             <div
               className="group relative aspect-[3/4] rounded-xl overflow-hidden border border-border bg-surface cursor-zoom-in mt-4"
               onClick={() => {
@@ -299,8 +337,38 @@ function CardDetailPageInner() {
                   🔍 Click to zoom
                 </span>
               </div>
+              {isOwner && (
+                <label
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-2 right-2 z-10 text-[10px] px-2 py-1 rounded-full bg-black/60 text-white border border-white/30 cursor-pointer hover:bg-black/80 transition-colors"
+                >
+                  {uploadingImage === "back" ? "Uploading…" : "🔁 Replace"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageChange("back", e)}
+                    disabled={uploadingImage !== null}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </div>
+          ) : (
+            isOwner && (
+              <label className="mt-4 flex items-center justify-center aspect-[3/4] rounded-xl border border-dashed border-border text-muted text-sm cursor-pointer hover:border-accent-2/40 hover:text-foreground transition-colors">
+                {uploadingImage === "back" ? "Uploading…" : "+ Add back photo"}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange("back", e)}
+                  disabled={uploadingImage !== null}
+                  className="hidden"
+                />
+              </label>
+            )
           )}
+
+          {imageError && <p className="text-xs text-down mt-2">{imageError}</p>}
 
           {isOwner && (
             <div className="mt-4 flex items-center justify-end gap-2">

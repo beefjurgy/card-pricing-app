@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { imageKey, uploadImage, deleteImage } from "@/lib/storage";
+import { ALLOWED_IMAGE_TYPES, MAX_IMAGE_BYTES, imageKey, uploadImage, deleteImage } from "@/lib/storage";
 import { clearAvatarUrl, getAvatarUrl, setAvatarUrl } from "@/lib/users";
 
 export const runtime = "nodejs";
-
-// Browsers other than Safari can't decode HEIC in an <img> tag, so an
-// iPhone/Photos-library picker file uploads "successfully" but never
-// renders. Checked server-side too, not just client-side, since the
-// client check is only a courtesy — this is the real gate.
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
-// Comfortably under Vercel's ~4.5MB serverless function request body limit.
-const MAX_BYTES = 4 * 1024 * 1024;
 
 export async function PATCH(req: NextRequest) {
   const session = await auth();
@@ -24,10 +16,10 @@ export async function PATCH(req: NextRequest) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Missing image file." }, { status: 400 });
   }
-  if (!ALLOWED_TYPES.has(file.type)) {
+  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     return NextResponse.json({ error: "That photo format isn't supported. Try a JPG, PNG, or WEBP." }, { status: 400 });
   }
-  if (file.size > MAX_BYTES) {
+  if (file.size > MAX_IMAGE_BYTES) {
     return NextResponse.json({ error: "That photo is too large. Please use one under 4MB." }, { status: 400 });
   }
 

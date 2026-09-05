@@ -13,6 +13,15 @@ const r2 = new S3Client({
 const BUCKET = process.env.R2_BUCKET_NAME!;
 const PUBLIC_URL = process.env.R2_PUBLIC_URL!; // no trailing slash, e.g. https://pub-xxxxxxxx.r2.dev
 
+// Shared by every route that accepts a user-uploaded photo (avatar, card
+// front/back). Browsers other than Safari can't decode HEIC in an <img>
+// tag, so an iPhone/Photos-library picker file uploads "successfully" but
+// never renders — checked server-side too, not just client-side, since the
+// client check is only a courtesy.
+export const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+// Comfortably under Vercel's ~4.5MB serverless function request body limit.
+export const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
+
 // Same "<id>[-back].<ext>" naming scheme the old local-disk code used, kept
 // identical so the one-time migration script can reuse existing
 // public/uploads/* filenames as R2 keys verbatim.

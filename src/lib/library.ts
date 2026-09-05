@@ -206,6 +206,14 @@ export async function setValuationFields(
   return rows.length ? rowToCard(rows[0]) : null;
 }
 
+export async function setCardImage(id: string, side: "front" | "back", url: string): Promise<LibraryCard | null> {
+  const rows =
+    side === "front"
+      ? ((await sql`UPDATE cards SET image_url = ${url} WHERE id = ${id} RETURNING *`) as CardRow[])
+      : ((await sql`UPDATE cards SET back_image_url = ${url} WHERE id = ${id} RETURNING *`) as CardRow[]);
+  return rows.length ? rowToCard(rows[0]) : null;
+}
+
 export async function deleteCard(id: string): Promise<boolean> {
   // RETURNING the image columns in the same statement avoids a second round
   // trip just to find out what to remove from R2.
