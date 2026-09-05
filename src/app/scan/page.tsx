@@ -425,6 +425,14 @@ export default function ScanPage() {
               />
             </label>
             <label className="flex flex-col gap-1 text-sm">
+              Other
+              <input
+                {...field("otherDetails")}
+                placeholder="e.g. Color Match"
+                className="px-3 py-2 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">
               Grading Company
               <input
                 {...field("gradingCompany")}
