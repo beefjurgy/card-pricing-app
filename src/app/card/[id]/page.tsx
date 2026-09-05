@@ -337,8 +337,6 @@ function CardDetailPageInner() {
         <div className="space-y-6 min-w-0">
           <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} heat={heat} />
 
-          <SetInfoCard identity={card} />
-
           <ValuationCard
             valuation={card.valuation}
             cardId={card.id}
@@ -346,6 +344,8 @@ function CardDetailPageInner() {
             canRefresh={isOwner}
             identifyNotes={card.identifyNotes}
           />
+
+          <SetInfoCard identity={card} />
 
           <CardDescription
             identity={card}
