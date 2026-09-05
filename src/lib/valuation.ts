@@ -4,6 +4,7 @@ import { computeTrending } from "./trending";
 import { getCareerStats } from "./careerStats";
 import { searchEbayListings, searchEbayListingsTiered, TieredEbayListing } from "./ebay";
 import { cardQuery, cardQueryBroad, cardQueryBroadest, cardQueryLastResort, cardQuerySplitCandidates } from "./platformLinks";
+import { getSoldComps } from "./soldComps";
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
@@ -549,7 +550,11 @@ function modeledFallback(identity: CardIdentity): Valuation {
 async function fallbackValuation(
   identity: CardIdentity
 ): Promise<{ valuation: Valuation; sales: Sale[]; population: Population | null; trending: TrendingSignal | null }> {
-  const { prices, broadMatch, looseMatch } = await ebayPrices(identity);
+  // Run alongside the active-listings lookup (not gated behind it) so a
+  // successful sold-comp match doesn't cost an extra round trip — the
+  // active-listing count is still needed below for the trending signal
+  // regardless of which path wins the actual valuation.
+  const [soldComps, { prices, broadMatch, looseMatch }] = await Promise.all([getSoldComps(identity), ebayPrices(identity)]);
   const modeled = modeledFallback(identity);
   const broadCaveat = broadMatch
     ? " Includes listings for other parallels/versions of this same base card (year/set/number/player), not just this exact one, which may differ in value."
@@ -566,7 +571,24 @@ async function fallbackValuation(
 
   let valuation: Valuation;
 
-  if (prices.length >= 3) {
+  if (soldComps && soldComps.count >= 3) {
+    // Real completed sales beat active asking prices whenever there are
+    // enough of them — this is the whole point of adding a sold-comp
+    // source, so it takes priority over the eBay-active-listings branches
+    // below even when those also have >= 3 matches.
+    const estimate = Math.round(median(soldComps.prices));
+    const { low, high } = interquartileRange(soldComps.prices);
+    valuation = {
+      estimate,
+      low: Math.round(low),
+      high: Math.round(high),
+      trend: "flat",
+      trendPercent: 0,
+      confidence: "high",
+      matchedComp: null,
+      note: `Based on ${soldComps.count} real recent sold prices for this exact card (median, range trimmed to the middle 50%) — actual completed sales, not asking prices.`,
+    };
+  } else if (prices.length >= 3) {
     // Enough real listings to stand on their own as the estimate.
     const estimate = Math.round(median(prices));
     const { low, high } = interquartileRange(prices);
