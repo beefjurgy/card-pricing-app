@@ -43,7 +43,7 @@ function LibraryPageInner() {
   // the initial value; genuinely new navigations to "/" with no params
   // still land on a clean, unfiltered "All" view.
   const initialSort = searchParams.get("sort");
-  const [sortBy, setSortBy] = useState<SortOption>(isSortOption(initialSort) ? initialSort : "recent");
+  const [sortBy, setSortBy] = useState<SortOption>(isSortOption(initialSort) ? initialSort : "value-high");
   const [sportFilter, setSportFilter] = useState<string | null>(searchParams.get("sport"));
   const [gradedOnly, setGradedOnly] = useState(searchParams.get("graded") === "1");
   const [autoOnly, setAutoOnly] = useState(searchParams.get("auto") === "1");
@@ -82,7 +82,7 @@ function LibraryPageInner() {
   useEffect(() => {
     if (!isOwner) return;
     const params = new URLSearchParams();
-    if (sortBy !== "recent") params.set("sort", sortBy);
+    if (sortBy !== "value-high") params.set("sort", sortBy);
     if (sportFilter) params.set("sport", sportFilter);
     if (gradedOnly) params.set("graded", "1");
     if (autoOnly) params.set("auto", "1");
