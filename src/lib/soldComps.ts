@@ -49,7 +49,14 @@ async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
   const apiKey = process.env.THE_CARD_API_KEY;
   if (!apiKey) return [];
   try {
-    const url = `https://www.thecardapi.com/api/v1/market/sales?q=${encodeURIComponent(query)}&platform=ebay&category=sports&limit=50`;
+    // The API's own `category=sports` filter is broken — confirmed live
+    // (2026-09-05): it returns zero results regardless of value or casing,
+    // even for an unambiguous query like "Michael Jordan". Left off
+    // entirely rather than worked around; `platform=ebay` alone is precise
+    // enough scoping for a player/set/card-number query, since a real
+    // player's name essentially never collides with a Pokémon/TCG product
+    // name.
+    const url = `https://www.thecardapi.com/api/v1/market/sales?q=${encodeURIComponent(query)}&platform=ebay&limit=50`;
     const res = await fetch(url, { headers: { "x-market-api-key": apiKey } });
     if (!res.ok) return [];
     const data = (await res.json()) as { data?: SaleRecord[] };
