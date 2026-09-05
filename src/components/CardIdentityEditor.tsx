@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CardIdentity, LibraryCard, Sport } from "@/lib/types";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
-import { getSetInfoUrl } from "@/lib/platformLinks";
 import { CopyCertButton } from "./CopyCertButton";
 import { HeatScore } from "./PlayerBuzz";
 import { CardReactions } from "./CardReactions";
@@ -258,14 +257,6 @@ export function CardIdentityEditor({
             ✍️ {[card.autographCompany, card.autographGrade && `Auto ${card.autographGrade}`].filter(Boolean).join(" ") || "Autographed"}
           </span>
         )}
-        <a
-          href={getSetInfoUrl(card)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-2.5 py-1 rounded-full bg-accent/15 text-accent border border-accent/30 font-medium hover:bg-accent/25 transition-colors"
-        >
-          Set info ↗
-        </a>
       </div>
     </div>
   );

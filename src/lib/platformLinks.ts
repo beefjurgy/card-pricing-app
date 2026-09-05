@@ -77,19 +77,6 @@ export function cardQueryBroadest(card: QueryFields): string | null {
     .join(" ");
 }
 
-// A site:tcdb.com-scoped search (the original approach here) guarantees a
-// dead end — a blank "no results" page — for any set TCDB hasn't indexed
-// yet, which happens often for brand-new releases and niche/non-sport
-// products. Dropping the site restriction means Google can surface TCDB
-// when it has the set, or any other real checklist/set-info page when it
-// doesn't, instead of a guaranteed empty result. Uses the broad query (no
-// parallel) since that's the set-level info being looked for, plus a
-// "checklist" keyword to bias results toward set-info pages specifically.
-export function getSetInfoUrl(card: QueryFields): string {
-  const query = `${cardQueryBroad(card)} checklist`;
-  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-}
-
 // Domains we're confident enough in to scope a search to, for platforms whose
 // own internal search URL format isn't reliable enough to link to directly.
 const SITE_DOMAINS: Record<string, string> = {

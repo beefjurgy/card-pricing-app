@@ -21,6 +21,7 @@ import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
 import { CardIdentityEditor } from "@/components/CardIdentityEditor";
+import { SetInfoCard } from "@/components/SetInfoCard";
 import { getPlatformSearchUrl } from "@/lib/platformLinks";
 
 function formatUsd(value: number): string {
@@ -335,6 +336,8 @@ function CardDetailPageInner() {
 
         <div className="space-y-6 min-w-0">
           <CardIdentityEditor card={card} canEdit={isOwner} onUpdate={setCard} heat={heat} />
+
+          <SetInfoCard identity={card} />
 
           <ValuationCard
             valuation={card.valuation}
