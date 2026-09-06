@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { RandomCardButton } from "@/components/RandomCardButton";
 import { AuthHeaderControl } from "@/components/AuthHeaderControl";
+import { HeaderSearch } from "@/components/HeaderSearch";
 import { Footer } from "@/components/Footer";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -56,10 +57,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   Everything about your collection in one place.
                 </span>
               </div>
-              <nav className="flex items-center gap-1 text-sm">
-                <RandomCardButton />
-                <AuthHeaderControl />
-              </nav>
+              <div className="flex items-center gap-3">
+                <HeaderSearch />
+                <nav className="flex items-center gap-1 text-sm">
+                  <RandomCardButton />
+                  <AuthHeaderControl />
+                </nav>
+              </div>
             </div>
           </header>
           <main className="flex-1">{children}</main>
