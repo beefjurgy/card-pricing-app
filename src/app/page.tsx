@@ -50,7 +50,10 @@ function LibraryPageInner() {
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
   const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "1");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
+  // Owned by the persistent header search bar (GlobalSearch), not local
+  // state here — derived live from the URL so typing there re-filters this
+  // page without needing a shared context or a full remount.
+  const searchQuery = searchParams.get("q") ?? "";
 
   // A bare "/" visit (no filters in the URL at all) opens straight to
   // Featured, if any cards have been marked — deferred until the cards
@@ -200,19 +203,6 @@ function LibraryPageInner() {
           )}
         </p>
       </div>
-
-      {cards && cards.length > 1 && (
-        <div className="relative mb-4 max-w-sm">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">🔍</span>
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search player, set, brand, year…"
-            className="w-full pl-9 pr-3 py-2 rounded-md bg-surface-2 border border-border text-sm text-foreground placeholder:text-muted focus:border-accent-2 outline-none"
-          />
-        </div>
-      )}
 
       {cards && cards.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">

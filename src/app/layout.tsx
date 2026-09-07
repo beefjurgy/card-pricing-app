@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { RandomCardButton } from "@/components/RandomCardButton";
 import { AuthHeaderControl } from "@/components/AuthHeaderControl";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import { Footer } from "@/components/Footer";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -62,6 +64,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               </nav>
             </div>
           </header>
+          <Suspense fallback={null}>
+            <GlobalSearch />
+          </Suspense>
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
