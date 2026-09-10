@@ -40,8 +40,8 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
       </div>
       <h1 className="text-3xl font-bold tracking-tight">Everything about your card collection in one place</h1>
       <p className="text-muted mt-4 leading-relaxed">
-        Scan your cards, AI identifies them, prices them against live eBay listings, and gives you a shareable
-        profile to brag about.
+        Scan your cards, AI identifies them, prices them against real sold data when available, and gives you a
+        shareable profile to brag about.
       </p>
       <Link
         href="/login"
@@ -68,7 +68,7 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
         </div>
         <div>
           <p className="font-medium">Live valuations</p>
-          <p className="text-muted text-sm mt-1">Priced against real eBay listings.</p>
+          <p className="text-muted text-sm mt-1">Priced against real sold data when available.</p>
         </div>
         <div>
           <p className="font-medium">Shareable profile</p>
