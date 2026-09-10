@@ -47,7 +47,10 @@ function titleIndicatesAutograph(title: string): boolean {
 
 async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
   const apiKey = process.env.THE_CARD_API_KEY;
-  if (!apiKey) return [];
+  if (!apiKey) {
+    console.error("Sold comps: THE_CARD_API_KEY is not set in this environment.");
+    return [];
+  }
   try {
     // The API's own `category=sports` filter is broken — confirmed live
     // (2026-09-05): it returns zero results regardless of value or casing,
@@ -58,7 +61,11 @@ async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
     // name.
     const url = `https://www.thecardapi.com/api/v1/market/sales?q=${encodeURIComponent(query)}&platform=ebay&limit=50`;
     const res = await fetch(url, { headers: { "x-market-api-key": apiKey } });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`Sold comps: request failed (${res.status} ${res.statusText}). Key length: ${apiKey.length}. Body: ${body.slice(0, 300)}`);
+      return [];
+    }
     const data = (await res.json()) as { data?: SaleRecord[] };
     return data.data ?? [];
   } catch (err) {
