@@ -1,6 +1,6 @@
 import "server-only";
 import { CardIdentity } from "./types";
-import { cardQuery } from "./platformLinks";
+import { cardQueryBroad } from "./platformLinks";
 
 interface SaleRecord {
   title: string;
@@ -85,7 +85,15 @@ async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
 // listing-matcher's extra precision isn't worth the extra complexity here
 // until real usage shows it's needed.
 export async function getSoldComps(identity: CardIdentity): Promise<SoldCompsResult | null> {
-  const records = await fetchSaleRecords(cardQuery(identity));
+  // cardQuery() (used for the eBay Browse API path) includes the card's
+  // parallel name in the search text — for a plain "Base" card that meant
+  // literally searching for the word "Base", which thecardapi.com's search
+  // treats as a required term. Since real sellers rarely write "Base" in a
+  // title, that collapsed real matches from 7 down to 1 for a live test
+  // card (confirmed via a temporary debug route, 2026-09-10). cardQueryBroad
+  // omits the parallel entirely — a better fit anyway, since the matching
+  // below doesn't check parallel/print-run either.
+  const records = await fetchSaleRecords(cardQueryBroad(identity));
   if (records.length === 0) return null;
 
   const isGraded = Boolean(identity.gradingCompany && identity.grade);
