@@ -47,10 +47,14 @@ function CardDetailPageInner() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
-  const isOwner = Boolean(session?.user?.id);
   const searchParamsSort = useSearchParams().get("sort");
   const sortBy: SortOption = isSortOption(searchParamsSort) ? searchParamsSort : "recent";
   const [card, setCard] = useState<LibraryCard | null | undefined>(undefined);
+  // "Owns THIS card," not just "is signed in" — every usage below (edit
+  // controls, refresh, purchase info, comment moderation) needs the real
+  // check. Safely false while card is still loading/not found (undefined
+  // or null), since session.user.id never equals either.
+  const isOwner = Boolean(session?.user?.id) && session?.user?.id === card?.userId;
   const [neighbors, setNeighbors] = useState<Neighbors | null>(null);
   const [allCards, setAllCards] = useState<LibraryCard[] | null>(null);
   const [deleting, setDeleting] = useState(false);
