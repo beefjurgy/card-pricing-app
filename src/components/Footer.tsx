@@ -55,8 +55,8 @@ export function Footer() {
         <div className="sm:max-w-xs">
           <p className="font-medium uppercase tracking-wide text-xs text-background/50 mb-3">How the estimates work</p>
           <p className="text-background/70 leading-relaxed">
-            Valuations are estimates based on live eBay listings and other public data sources — not appraisals or
-            financial advice.
+            Valuations are estimates based on real sold prices when available, and live eBay listings otherwise —
+            not appraisals or financial advice.
           </p>
         </div>
 

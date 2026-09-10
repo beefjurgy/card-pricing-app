@@ -56,9 +56,10 @@ export default function AboutPage() {
         <div className="rounded-xl border border-border bg-surface p-5">
           <SectionHeading className="mb-2">How the pricing works</SectionHeading>
           <p className="text-sm text-muted leading-relaxed">
-            Every estimate is built from real eBay listings matched to the exact card, parallel, and grade — with a
-            confidence level and a plain-English note explaining where the number came from. When there isn&apos;t
-            enough real market data, that&apos;s disclosed too, rather than guessing with false precision.
+            Every estimate is built from real sold prices when they&apos;re available, or live eBay listings matched
+            to the exact card, parallel, and grade when they&apos;re not — with a confidence level and a
+            plain-English note explaining where the number came from. When there isn&apos;t enough real market data,
+            that&apos;s disclosed too, rather than guessing with false precision.
           </p>
         </div>
       </div>
