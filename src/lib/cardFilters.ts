@@ -7,7 +7,12 @@ import { LibraryCard } from "./types";
 // the same way a title reliably mentions "auto" elsewhere in this app.
 // Word-boundary matching (not a plain substring) so "mem" doesn't also
 // catch an unrelated word like a "Memphis" team reference.
-const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "threads", "duals", "materials"];
+// "threads" deliberately excluded — it's the literal product-line name of
+// Topps Triple Threads, which has plenty of non-relic base/parallel cards
+// (e.g. a plain "Base /1449" or "Sepia /639" photo variation with no
+// memorabilia window at all). Matching the set name here false-positived
+// every card in that entire line, not just its actual relic parallels.
+const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "duals", "materials"];
 export function isPatchCard(card: LibraryCard): boolean {
   const text = `${card.parallel} ${card.setName}`.toLowerCase();
   return PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(text));
