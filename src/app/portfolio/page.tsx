@@ -100,6 +100,25 @@ export default function PortfolioPage() {
       .sort((a, b) => b.value - a.value);
   }, [cards]);
 
+  // By total value across every card of that player, not just their single
+  // priciest card — same "value, not count" framing as the sport breakdown
+  // above, since one $2,000 rookie should outrank ten $5 commons of a
+  // different player.
+  const topPlayers = useMemo(() => {
+    if (!cards) return [];
+    const totals = new Map<string, { value: number; count: number }>();
+    for (const c of cards) {
+      const entry = totals.get(c.player) ?? { value: 0, count: 0 };
+      entry.value += c.valuation.estimate;
+      entry.count += 1;
+      totals.set(c.player, entry);
+    }
+    return [...totals.entries()]
+      .map(([player, { value, count }]) => ({ player, value, count }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  }, [cards]);
+
   if (status === "loading") return null;
 
   if (!session) {
@@ -183,6 +202,24 @@ export default function PortfolioPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {topPlayers.length > 0 && (
+        <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+          <p className="text-xs text-muted uppercase tracking-wide mb-4">Top Players by Value</p>
+          <div className="flex flex-col gap-2">
+            {topPlayers.map((entry, i) => (
+              <div key={entry.player} className="flex items-center gap-3 text-sm">
+                <span className="w-5 shrink-0 text-muted text-right">{i + 1}</span>
+                <span className="flex-1 font-medium truncate">{entry.player}</span>
+                <span className="text-muted whitespace-nowrap">
+                  {entry.count} card{entry.count === 1 ? "" : "s"}
+                </span>
+                <span className="font-medium w-20 text-right text-accent">{formatUsd(entry.value)}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
