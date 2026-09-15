@@ -119,6 +119,23 @@ export default function PortfolioPage() {
       .slice(0, 10);
   }, [cards]);
 
+  // Dollar gain, not percentage — a $500 card up 10% ($50) is a bigger real
+  // gain than a $10 card up 200% ($20), and this list is about dollars
+  // earned, same framing as the "Gain / Loss" stat above. Only cards with a
+  // recorded purchase price have a real cost basis to gain against.
+  const topGainers = useMemo(() => {
+    if (!cards) return [];
+    return cards
+      .filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number")
+      .map((c) => ({
+        card: c,
+        gain: c.valuation.estimate - c.purchasePrice,
+        pct: c.purchasePrice > 0 ? Math.round(((c.valuation.estimate - c.purchasePrice) / c.purchasePrice) * 1000) / 10 : null,
+      }))
+      .sort((a, b) => b.gain - a.gain)
+      .slice(0, 10);
+  }, [cards]);
+
   if (status === "loading") return null;
 
   if (!session) {
@@ -219,6 +236,35 @@ export default function PortfolioPage() {
                 </span>
                 <span className="font-medium w-20 text-right text-accent">{formatUsd(entry.value)}</span>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {topGainers.length > 0 && (
+        <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+          <p className="text-xs text-muted uppercase tracking-wide mb-4">Biggest Gainers</p>
+          <div className="flex flex-col gap-2">
+            {topGainers.map(({ card, gain, pct }, i) => (
+              <Link
+                key={card.id}
+                href={`/card/${card.id}`}
+                className="flex items-center gap-3 text-sm rounded-md -mx-2 px-2 py-1 hover:bg-surface-2 transition-colors"
+              >
+                <span className="w-5 shrink-0 text-muted text-right">{i + 1}</span>
+                <span className="flex-1 font-medium truncate">{card.player}</span>
+                <span className={`font-medium whitespace-nowrap ${gain >= 0 ? "text-up" : "text-down"}`}>
+                  {gain >= 0 ? "+" : ""}
+                  {formatUsd(gain)}
+                  {pct !== null && (
+                    <span className="text-muted">
+                      {" "}
+                      ({gain >= 0 ? "+" : ""}
+                      {pct}%)
+                    </span>
+                  )}
+                </span>
+              </Link>
             ))}
           </div>
         </div>
