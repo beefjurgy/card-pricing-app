@@ -12,54 +12,39 @@ export interface SoldCompsResult {
   count: number;
 }
 
-// Same grading-company list valuation.ts uses for the eBay Browse API path.
-const KNOWN_GRADING_COMPANIES = ["PSA", "BGS", "SGC", "CGC", "CCG", "BGG", "PGS", "FCGS"];
-
-function escapeRegExp(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function titleMentionsCompany(title: string, company: string): boolean {
-  return new RegExp(`\\b${escapeRegExp(company.trim())}\\b`, "i").test(title);
-}
-
-function titleMentionsAnyOtherCompany(title: string, company: string): boolean {
-  const upper = company.trim().toUpperCase();
-  return KNOWN_GRADING_COMPANIES.some((candidate) => candidate !== upper && titleMentionsCompany(title, candidate));
-}
-
-// Same reasoning as valuation.ts's titleStatesDifferentGrade — a title
-// naming the same grading company but a different explicit grade number is
-// confirmed proof this sale isn't the card in hand, not weak evidence for
-// it (the bug this whole feature grew out of: a PSA 8 sale badly skewing a
-// PSA 6 estimate).
-function titleStatesDifferentGrade(title: string, gradingCompany: string, grade: string): boolean {
-  const company = escapeRegExp(gradingCompany.trim());
-  const gradeNum = parseFloat(grade);
-  if (!company || Number.isNaN(gradeNum)) return false;
-  const match = title.match(new RegExp(`${company}\\D{0,10}(\\d{1,2}(?:\\.\\d)?)\\b`, "i"));
-  return match !== null && parseFloat(match[1]) !== gradeNum;
-}
-
 function titleIndicatesAutograph(title: string): boolean {
   return /\bauto(?:s|graph(?:s|ed)?)?\b/i.test(title);
 }
 
-async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
+async function fetchSaleRecords(query: string, identity: CardIdentity): Promise<SaleRecord[]> {
   const apiKey = process.env.THE_CARD_API_KEY;
   if (!apiKey) {
     console.error("Sold comps: THE_CARD_API_KEY is not set in this environment.");
     return [];
   }
   try {
-    // The API's own `category=sports` filter is broken — confirmed live
-    // (2026-09-05): it returns zero results regardless of value or casing,
-    // even for an unambiguous query like "Michael Jordan". Left off
-    // entirely rather than worked around; `platform=ebay` alone is precise
-    // enough scoping for a player/set/card-number query, since a real
-    // player's name essentially never collides with a Pokémon/TCG product
-    // name.
-    const url = `https://www.thecardapi.com/api/v1/market/sales?q=${encodeURIComponent(query)}&platform=ebay&limit=50`;
+    // thecardapi.com's structured grader/grade/graded filters were broken
+    // for eBay-sourced records for the first several weeks after we
+    // integrated (grade/grader came back null even when a title plainly
+    // stated one) — confirmed fixed live on 2026-09-16, so this now trusts
+    // them directly instead of re-deriving grade/company from the raw
+    // title ourselves. Autograph status still isn't one of their filters,
+    // so that's the one thing still checked client-side below.
+    //
+    // The API's own `category=sports` filter is separately broken — still
+    // confirmed broken as of 2026-09-16, returns zero results regardless
+    // of value/casing even for an unambiguous query. Left off entirely;
+    // `platform=ebay` alone is precise enough scoping for a
+    // player/set/card-number query.
+    const params = new URLSearchParams({ q: query, platform: "ebay", limit: "50" });
+    const isGraded = Boolean(identity.gradingCompany && identity.grade);
+    if (isGraded) {
+      params.set("grader", identity.gradingCompany);
+      params.set("grade", identity.grade);
+    } else {
+      params.set("graded", "false");
+    }
+    const url = `https://www.thecardapi.com/api/v1/market/sales?${params.toString()}`;
     const res = await fetch(url, { headers: { "x-market-api-key": apiKey } });
     if (!res.ok) {
       const body = await res.text().catch(() => "");
@@ -74,16 +59,6 @@ async function fetchSaleRecords(query: string): Promise<SaleRecord[]> {
   }
 }
 
-// thecardapi.com's structured grader/grade filters come back empty for
-// eBay-sourced records specifically — verified live: grade/grader are null
-// even on a record whose title plainly states one (e.g. "BGS 9.5"). So
-// matching happens the same way the eBay Browse API listings already get
-// matched in valuation.ts: against each record's raw title. This is a
-// smaller version of that logic — grade/company/autograph only, no
-// parallel or print-run matching yet — since a short sold-data lookback
-// window (3 days on the free tier) already means a small sample; the full
-// listing-matcher's extra precision isn't worth the extra complexity here
-// until real usage shows it's needed.
 export async function getSoldComps(identity: CardIdentity): Promise<SoldCompsResult | null> {
   // cardQuery() (used for the eBay Browse API path) includes the card's
   // parallel name in the search text — for a plain "Base" card that meant
@@ -93,20 +68,10 @@ export async function getSoldComps(identity: CardIdentity): Promise<SoldCompsRes
   // card (confirmed via a temporary debug route, 2026-09-10). cardQueryBroad
   // omits the parallel entirely — a better fit anyway, since the matching
   // below doesn't check parallel/print-run either.
-  const records = await fetchSaleRecords(cardQueryBroad(identity));
+  const records = await fetchSaleRecords(cardQueryBroad(identity), identity);
   if (records.length === 0) return null;
 
-  const isGraded = Boolean(identity.gradingCompany && identity.grade);
-  const matched = records.filter((r) => {
-    if (titleIndicatesAutograph(r.title) !== identity.isAutograph) return false;
-    const titleIsGraded = KNOWN_GRADING_COMPANIES.some((c) => titleMentionsCompany(r.title, c));
-    if (titleIsGraded !== isGraded) return false;
-    if (isGraded) {
-      if (titleMentionsAnyOtherCompany(r.title, identity.gradingCompany)) return false;
-      if (titleStatesDifferentGrade(r.title, identity.gradingCompany, identity.grade)) return false;
-    }
-    return true;
-  });
+  const matched = records.filter((r) => titleIndicatesAutograph(r.title) === identity.isAutograph);
 
   const prices = matched.map((r) => r.price).filter((p): p is number => typeof p === "number" && p > 0);
   if (prices.length === 0) return null;
