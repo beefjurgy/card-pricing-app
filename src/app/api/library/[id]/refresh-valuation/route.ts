@@ -22,6 +22,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const card = await getCard(id);
   if (!card) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (card.userId !== session.user.id) {
+    return NextResponse.json({ error: "You don't own this card." }, { status: 403 });
+  }
 
   const { force } = (await req.json().catch(() => ({}))) as { force?: boolean };
   if (!force && isProtectedValuation(card.valuation.note)) {

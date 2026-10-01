@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { LibraryCard } from "@/lib/types";
 import { SortOption } from "@/lib/librarySort";
 import { valueEmoji } from "@/lib/valueEmoji";
+import { isProtectedValuation } from "@/lib/valuationProtection";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -16,19 +17,29 @@ export function CardTile({
   card,
   sortBy,
   onFeaturedChange,
+  onCardUpdate,
   disableLink,
 }: {
   card: LibraryCard;
   sortBy?: SortOption;
   onFeaturedChange?: (id: string, isFeatured: boolean) => void;
+  // Quick "refresh valuation" from the grid, without opening the card page
+  // first — hands back the full updated card so the parent can splice it
+  // into whatever list it's rendering.
+  onCardUpdate?: (card: LibraryCard) => void;
   // For the logged-out landing page's preview grid — a teaser, not a
   // gateway into browsing individual card pages while unauthenticated.
   disableLink?: boolean;
 }) {
   const title = [card.year, card.brand, card.setName].filter(Boolean).join(" ");
   const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { data: session } = useSession();
-  const isOwner = Boolean(session?.user?.id);
+  // "Owns THIS card," not just "is signed in" — CardTile is also used to
+  // render other people's cards (public profiles, the activity feed), and
+  // without this check a signed-in viewer saw the Featured-star and
+  // refresh-valuation controls on cards they don't own.
+  const isOwner = Boolean(session?.user?.id) && session?.user?.id === card.userId;
 
   async function toggleFeatured(e: React.MouseEvent) {
     e.preventDefault();
@@ -46,6 +57,28 @@ export function CardTile({
       if (data.card) onFeaturedChange?.(card.id, data.card.isFeatured);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function refreshValuation(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (refreshing) return;
+    const protectedValuation = isProtectedValuation(card.valuation.note);
+    if (protectedValuation && !window.confirm("This price was manually verified by you. Replace it with a fresh automatic estimate?")) {
+      return;
+    }
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/library/${card.id}/refresh-valuation`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: protectedValuation }),
+      });
+      const data = await res.json();
+      if (data.card) onCardUpdate?.(data.card);
+    } finally {
+      setRefreshing(false);
     }
   }
 
@@ -83,7 +116,19 @@ export function CardTile({
         <p className="font-medium truncate group-hover:text-accent-2 transition-colors">{card.player}</p>
         <div className="mt-auto pt-2 flex items-center justify-between">
           <span className="font-semibold text-accent">{formatUsd(card.valuation.estimate)}</span>
-          <span className="text-base">{valueEmoji(card.valuation.estimate)}</span>
+          <div className="flex items-center gap-1.5">
+            {isOwner && (
+              <button
+                onClick={refreshValuation}
+                disabled={refreshing}
+                title="Refresh valuation"
+                className="text-muted hover:text-foreground transition-colors disabled:opacity-50 text-sm leading-none"
+              >
+                {refreshing ? "⏳" : "🔄"}
+              </button>
+            )}
+            <span className="text-base">{valueEmoji(card.valuation.estimate)}</span>
+          </div>
         </div>
       </div>
     </>

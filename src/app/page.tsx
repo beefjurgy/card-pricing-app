@@ -154,6 +154,10 @@ function LibraryPageInner() {
     setCards((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, isFeatured } : c)) : prev));
   }
 
+  function handleCardUpdate(updated: LibraryCard) {
+    setCards((prev) => (prev ? prev.map((c) => (c.id === updated.id ? updated : c)) : prev));
+  }
+
   const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
 
@@ -323,7 +327,7 @@ function LibraryPageInner() {
       {cards && cards.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {sortedCards.map((card) => (
-            <CardTile key={card.id} card={card} sortBy={sortBy} onFeaturedChange={handleFeaturedChange} />
+            <CardTile key={card.id} card={card} sortBy={sortBy} onFeaturedChange={handleFeaturedChange} onCardUpdate={handleCardUpdate} />
           ))}
         </div>
       )}
