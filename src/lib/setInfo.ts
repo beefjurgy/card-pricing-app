@@ -20,7 +20,14 @@ export interface SetInfo {
 // on cold start; this would otherwise pay for a fresh Anthropic call on
 // every cold start for a set that's already been described once, forever.
 export async function getSetInfo(year: string, brand: string, setName: string, sport: string): Promise<SetInfo | null> {
-  const key = normalizeKey(`${year} ${brand} ${setName}`);
+  // sport is part of the key, not just the prompt — Topps' baseball and
+  // football flagship sets in the same year are both frequently just
+  // called "Topps" (same year/brand/set name), so without this a
+  // same-named set in one sport silently serves a cached blurb written
+  // about a completely different sport (confirmed live: a 1981 Topps
+  // baseball card was served the 1981 Topps FOOTBALL blurb, generated
+  // first from a different card).
+  const key = normalizeKey(`${year} ${brand} ${setName} ${sport}`);
   if (!key) return null;
 
   const cached = (await sql`SELECT blurb FROM set_info WHERE key = ${key}`) as { blurb: string }[];
