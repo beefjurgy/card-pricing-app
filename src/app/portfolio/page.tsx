@@ -228,14 +228,18 @@ export default function PortfolioPage() {
           <p className="text-xs text-muted uppercase tracking-wide mb-4">Top Players by Value</p>
           <div className="flex flex-col gap-2">
             {topPlayers.map((entry, i) => (
-              <div key={entry.player} className="flex items-center gap-3 text-sm">
+              <Link
+                key={entry.player}
+                href={`/?q=${encodeURIComponent(entry.player)}`}
+                className="flex items-center gap-3 text-sm rounded-md -mx-2 px-2 py-1 hover:bg-surface-2 transition-colors"
+              >
                 <span className="w-5 shrink-0 text-muted text-right">{i + 1}</span>
                 <span className="flex-1 font-medium truncate">{entry.player}</span>
                 <span className="text-muted whitespace-nowrap">
                   {entry.count} card{entry.count === 1 ? "" : "s"}
                 </span>
                 <span className="font-medium w-20 text-right text-accent">{formatUsd(entry.value)}</span>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
