@@ -20,9 +20,24 @@ import { LibraryCard } from "./types";
 // just its actual relic parallels — identifyNotes is what correctly tells
 // a real swatch apart from a plain one in a "Threads"-named set instead.
 const PATCH_KEYWORDS = ["relic", "patch", "jersey", "memorabilia", "swatch", "mem", "duals", "materials"];
+
+// "jersey" is reliable in parallel/setName (a parallel literally named
+// "Jersey Patch Auto" always means a physical swatch), but identifyNotes is
+// natural-language prose that constantly uses "jersey" just to describe
+// what the player is WEARING in the photo ("shown in his black home
+// jersey") — nothing to do with a swatch embedded in the card. Confirmed
+// live: two plain photo cards (no memorabilia window at all) both got
+// miscategorized as Patch purely because their identifyNotes happened to
+// mention a jersey color/team, with no other keyword present. Dropped from
+// the notes-specific list; the others are far less likely to show up in a
+// purely descriptive, non-memorabilia sentence.
+const NOTES_PATCH_KEYWORDS = PATCH_KEYWORDS.filter((kw) => kw !== "jersey");
+
 export function isPatchCard(card: LibraryCard): boolean {
-  const text = `${card.parallel} ${card.setName} ${card.identifyNotes}`.toLowerCase();
-  return PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(text));
+  const parallelSetText = `${card.parallel} ${card.setName}`.toLowerCase();
+  if (PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(parallelSetText))) return true;
+  const notesText = card.identifyNotes.toLowerCase();
+  return NOTES_PATCH_KEYWORDS.some((kw) => new RegExp(`\\b${kw}\\b`).test(notesText));
 }
 
 // A serial-numbered parallel prints its own run directly on the card
