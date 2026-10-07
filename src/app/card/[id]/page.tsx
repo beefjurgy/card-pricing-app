@@ -20,6 +20,7 @@ import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
+import { PrepareListing } from "@/components/PrepareListing";
 import { CardIdentityEditor } from "@/components/CardIdentityEditor";
 import { SetInfoCard } from "@/components/SetInfoCard";
 import { getPlatformSearchUrl } from "@/lib/platformLinks";
@@ -429,6 +430,8 @@ function CardDetailPageInner() {
           />
 
           {isOwner && <PurchaseInfo card={card} onUpdate={setCard} />}
+
+          {isOwner && <PrepareListing card={card} />}
 
           {card.trending && <TrendingCard trending={card.trending} />}
 
