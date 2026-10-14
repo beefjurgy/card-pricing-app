@@ -45,6 +45,12 @@ const TERMS: Term[] = [
       "A card a collector has been chasing for years — the \"holy grail\" of your want list. Often high-end or personally meaningful, not necessarily the most expensive card that exists.",
   },
   {
+    term: "Holo / Holographic",
+    definition:
+      "A much older and more general finish than the newer named ones below — a foil layer that diffracts light into a shifting rainbow as the card tilts. Predates Prizm/Chrome-era naming, going back to early-90s sports cards and the original 1999 Pokémon base set. \"Spot holo\" limits the effect to part of the card (a border or logo); \"reverse holo\" flips it, leaving the art solid and making the background shine instead.",
+    exampleSearch: "holographic parallel trading card",
+  },
+  {
     term: "Insert",
     definition:
       "A card from a separate, often thematic subset within a product — a different design from the base set entirely, not just a recolor of it (unlike a parallel). Panini's \"Kaboom!\" or Topps' \"Diamond Anniversary\" are examples. An insert can itself have its own parallels.",
@@ -87,6 +93,12 @@ const TERMS: Term[] = [
     definition:
       "A patterned Prizm-family finish — a diagonal, wave-like texture across the whole card face, distinct from a plain colored Prizm's flat shine. Often a limited print run (e.g. /25) from hobby boxes specifically.",
     exampleSearch: "panini prizm mojo parallel",
+  },
+  {
+    term: "Mosaic",
+    definition:
+      "A Panini product line (like Prizm or Select) built around a chrome finish with a tiled, stained-glass-like background pattern, most visible on its colored parallels — base cards in some years lean closer to a plain chrome look, with the mosaic pattern showing up more on the parallel tiers.",
+    exampleSearch: "panini mosaic parallel",
   },
   {
     term: "Numbered",
@@ -157,6 +169,12 @@ const TERMS: Term[] = [
     definition:
       "A bold, mosaic-styled insert/parallel from Panini Mosaic products, sometimes printed as an oversized card. Sources disagree on whether it counts as an insert or a parallel in a given year — check the specific set's checklist.",
     exampleSearch: "panini mosaic stained glass",
+  },
+  {
+    term: "Velocity",
+    definition:
+      "A holographic-looking Prizm-family parallel, mainly seen in Panini Donruss Optic — comes in many colors (Pink, Blue, Green, Black, Red, Bronze, White, Gold) each with its own print run.",
+    exampleSearch: "donruss optic velocity parallel",
   },
   {
     term: "Wave",
