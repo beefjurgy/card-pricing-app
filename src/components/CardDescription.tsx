@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CardIdentity, LibraryCard } from "@/lib/types";
 import { SectionHeading } from "./SectionHeading";
 
-type Voice = "simmons" | "berman" | "madden" | "costas" | "scott" | "burke";
+type Voice = "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | "darke";
 
 const VOICE_LABELS: Record<Voice, string> = {
   simmons: "Simmons",
@@ -13,6 +13,7 @@ const VOICE_LABELS: Record<Voice, string> = {
   costas: "Costas",
   scott: "Scott",
   burke: "Burke",
+  darke: "Darke",
 };
 
 export function CardDescription({

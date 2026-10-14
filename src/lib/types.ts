@@ -111,5 +111,5 @@ export interface LibraryCard extends CardIdentity {
   isFeatured: boolean;
   isPublic: boolean;
   description: string | null;
-  descriptionVoice: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | null;
+  descriptionVoice: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | "darke" | null;
 }

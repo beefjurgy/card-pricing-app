@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { voice, ...identity } = (await req.json()) as CardIdentity & {
-    voice?: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke";
+    voice?: "simmons" | "berman" | "madden" | "costas" | "scott" | "burke" | "darke";
   };
   if (!identity?.player) {
     return NextResponse.json({ error: "Player name is required." }, { status: 400 });
@@ -47,6 +47,8 @@ export async function POST(req: NextRequest) {
       ? " Write it in the electric, hip-hop-inflected voice of an iconic late-night highlights anchor known for effortless cool, catchy slang-flecked signature phrases, and infectious energy — 'as cool as the other side of the pillow.'"
       : voice === "burke"
       ? " Write it in the sharp, insightful voice of a veteran basketball analyst known for precise on-court IQ, incisive technical breakdowns, and warm but no-nonsense authority."
+      : voice === "darke"
+      ? " Write it in the dramatic, classic-English voice of a legendary soccer commentator known for building excitement to a crescendo, savoring a name or moment with repeated emphasis, and a flair for turning a single play into an unforgettable call."
       : "";
 
   const client = new Anthropic({ apiKey });
