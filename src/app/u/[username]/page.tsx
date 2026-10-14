@@ -78,6 +78,7 @@ export default function PublicProfilePage() {
   const [patchOnly, setPatchOnly] = useState(false);
   const [numberedOnly, setNumberedOnly] = useState(false);
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [followCounts, setFollowCounts] = useState<{ followers: number; following: number } | null>(null);
   // A shared profile link should show off the curated highlights first,
   // not the whole raw collection — same "bare visit defaults to Featured"
   // behavior the home page already has. Deferred until cards actually
@@ -106,6 +107,24 @@ export default function PublicProfilePage() {
       .catch(() => {
         if (!cancelled) setNotFound(true);
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [username]);
+
+  // Same follow endpoint FollowButton already calls — a cheap, public
+  // (no-auth-required) read, fetched independently here since this stats
+  // row needs to render for logged-out visitors too, who never get a
+  // FollowButton at all.
+  useEffect(() => {
+    let cancelled = false;
+    setFollowCounts(null);
+    fetch(`/api/users/${username}/follow`)
+      .then((r) => r.json())
+      .then((data: { followers: number; following: number }) => {
+        if (!cancelled) setFollowCounts({ followers: data.followers, following: data.following });
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -171,15 +190,31 @@ export default function PublicProfilePage() {
         )}
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">@{username}</h1>
-          <p className="text-muted text-sm">
+          <p className="text-muted text-sm flex flex-wrap items-center gap-x-3">
             {cards && (
+              <span>
+                <span className="font-medium text-foreground">{cards.length}</span> card{cards.length === 1 ? "" : "s"}
+              </span>
+            )}
+            {followCounts && (
               <>
-                {cards.length} card{cards.length === 1 ? "" : "s"}
+                <span>
+                  <span className="font-medium text-foreground">{followCounts.followers}</span> follower
+                  {followCounts.followers === 1 ? "" : "s"}
+                </span>
+                <span>
+                  <span className="font-medium text-foreground">{followCounts.following}</span> following
+                </span>
               </>
             )}
           </p>
         </div>
-        {user && session?.user?.id !== user.id && <FollowButton username={username} />}
+        {user && session?.user?.id !== user.id && (
+          <FollowButton
+            username={username}
+            onFollowersChange={(followers) => setFollowCounts((prev) => (prev ? { ...prev, followers } : prev))}
+          />
+        )}
       </div>
 
       {user?.bio && <p className="text-sm text-foreground/90 leading-relaxed mb-6 whitespace-pre-wrap">{user.bio}</p>}
