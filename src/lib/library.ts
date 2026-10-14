@@ -2,6 +2,7 @@ import "server-only";
 import { neon } from "@neondatabase/serverless";
 import { LibraryCard, Population, Sale, TrendingSignal, Valuation } from "./types";
 import { deleteImage } from "./storage";
+import { clearFavoriteCardReferences } from "./users";
 
 // HTTP-mode client (a plain fetch per query, no held connection) rather than
 // the WebSocket Pool or plain `pg` — Vercel functions can spin up many
@@ -225,5 +226,6 @@ export async function deleteCard(id: string): Promise<boolean> {
   const { image_url, back_image_url } = rows[0];
   await deleteImage(image_url);
   if (back_image_url) await deleteImage(back_image_url);
+  await clearFavoriteCardReferences(id);
   return true;
 }

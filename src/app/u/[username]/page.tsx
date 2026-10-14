@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
+import Link from "next/link";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { CardDescription } from "@/components/CardDescription";
@@ -11,6 +12,10 @@ import { CommentThread } from "@/components/CommentThread";
 import { FollowButton } from "@/components/FollowButton";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
 import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
+
+function formatUsd(value: number): string {
+  return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
 
 interface ProfileUser {
   id: string;
@@ -70,6 +75,7 @@ export default function PublicProfilePage() {
   const { data: session } = useSession();
   const [user, setUser] = useState<ProfileUser | null>(null);
   const [cards, setCards] = useState<LibraryCard[] | null>(null);
+  const [favorites, setFavorites] = useState<(LibraryCard | null)[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("value-high");
   const [sportFilter, setSportFilter] = useState<string | null>(null);
@@ -91,6 +97,7 @@ export default function PublicProfilePage() {
     let cancelled = false;
     setUser(null);
     setCards(null);
+    setFavorites([]);
     setNotFound(false);
     appliedDefaultRef.current = false;
     fetch(`/api/users/${username}`)
@@ -103,6 +110,7 @@ export default function PublicProfilePage() {
         if (cancelled) return;
         setUser(data.user);
         setCards(data.cards);
+        setFavorites(data.favorites ?? []);
       })
       .catch(() => {
         if (!cancelled) setNotFound(true);
@@ -218,6 +226,40 @@ export default function PublicProfilePage() {
       </div>
 
       {user?.bio && <p className="text-sm text-foreground/90 leading-relaxed mb-6 whitespace-pre-wrap">{user.bio}</p>}
+
+      {favorites.some((f) => f) && (
+        <div className="mb-8 rounded-xl bg-foreground p-6">
+          <p className="text-xs uppercase tracking-wide text-background/60 mb-4">🏆 Top Favorites</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {favorites.map((card, i) =>
+              card ? (
+                <Link key={card.id} href={`/card/${card.id}`} className="group block">
+                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden ring-2 ring-background/20 group-hover:ring-accent-2 transition-all">
+                    {card.imageUrl ? (
+                      <Image
+                        src={card.imageUrl}
+                        alt={card.player}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, 300px"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-5xl bg-surface-2">🃏</div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-background group-hover:text-accent-2 transition-colors truncate">
+                    {card.player}
+                  </p>
+                  <p className="text-xs text-background/60">{formatUsd(card.valuation.estimate)}</p>
+                </Link>
+              ) : (
+                <div key={`empty-${i}`} className="hidden sm:block" />
+              )
+            )}
+          </div>
+        </div>
+      )}
 
       {cards && cards.length > 1 && (
         <div className="flex flex-wrap items-center gap-2 mb-4">

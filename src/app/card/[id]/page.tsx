@@ -23,6 +23,7 @@ import { PurchaseInfo } from "@/components/PurchaseInfo";
 import { PrepareListing } from "@/components/PrepareListing";
 import { CardIdentityEditor } from "@/components/CardIdentityEditor";
 import { SetInfoCard } from "@/components/SetInfoCard";
+import { FavoriteSlotsPicker } from "@/components/FavoriteSlotsPicker";
 import { getPlatformSearchUrl } from "@/lib/platformLinks";
 
 function formatUsd(value: number): string {
@@ -376,33 +377,36 @@ function CardDetailPageInner() {
           {imageError && <p className="text-xs text-down mt-2">{imageError}</p>}
 
           {isOwner && (
-            <div className="mt-4 flex items-center justify-end gap-2">
-              <button
-                onClick={toggleFeatured}
-                disabled={togglingFeatured}
-                aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
-              >
-                {card.isFeatured ? "⭐" : "☆"}
-              </button>
-              <button
-                onClick={togglePublic}
-                disabled={togglingPublic}
-                aria-label={card.isPublic ? "Make private (hide from public profile)" : "Make public"}
-                title={card.isPublic ? "Public — visible on your public profile" : "Private — hidden from your public profile"}
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
-              >
-                {card.isPublic ? "🌐" : "🔒"}
-              </button>
-              <button
-                onClick={() => setConfirmingDelete(true)}
-                aria-label="Remove card"
-                title="Remove card"
-                className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
-              >
-                🗑️
-              </button>
+            <div className="mt-4 flex items-center justify-between gap-2">
+              <FavoriteSlotsPicker cardId={card.id} />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleFeatured}
+                  disabled={togglingFeatured}
+                  aria-label={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                  title={card.isFeatured ? "Remove from Featured" : "Add to Featured"}
+                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
+                >
+                  {card.isFeatured ? "⭐" : "☆"}
+                </button>
+                <button
+                  onClick={togglePublic}
+                  disabled={togglingPublic}
+                  aria-label={card.isPublic ? "Make private (hide from public profile)" : "Make public"}
+                  title={card.isPublic ? "Public — visible on your public profile" : "Private — hidden from your public profile"}
+                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-foreground hover:border-accent-2/40 transition-colors flex items-center justify-center disabled:opacity-50"
+                >
+                  {card.isPublic ? "🌐" : "🔒"}
+                </button>
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  aria-label="Remove card"
+                  title="Remove card"
+                  className="w-8 h-8 rounded-md border border-border text-muted hover:text-down hover:border-down/40 hover:bg-down/10 transition-colors flex items-center justify-center"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
           )}
         </div>
