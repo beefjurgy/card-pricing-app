@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
+import { CardDescription } from "@/components/CardDescription";
 import { CommentThread } from "@/components/CommentThread";
 import { FollowButton } from "@/components/FollowButton";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
@@ -16,6 +17,52 @@ interface ProfileUser {
   avatarUrl: string | null;
   username: string;
   bio: string | null;
+}
+
+// A visitor browsing someone's profile can read an already-saved
+// description (no edit controls shown — CardDescription itself handles
+// that split), but the toggle only appears at all when there's something
+// to show: either the profile owner (who can generate/regenerate one) or
+// a card that already has a saved blurb. Collapsed by default so the grid
+// doesn't turn into a wall of text — this is a "peek if curious" feature,
+// not something shown automatically for every card.
+function ProfileCardWithDescription({
+  card,
+  sortBy,
+  isOwner,
+  onUpdate,
+}: {
+  card: LibraryCard;
+  sortBy: SortOption;
+  isOwner: boolean;
+  onUpdate: (card: LibraryCard) => void;
+}) {
+  const [showDescription, setShowDescription] = useState(false);
+  const hasContent = isOwner || Boolean(card.description);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <CardTile card={card} sortBy={sortBy} />
+      {hasContent && (
+        <button
+          onClick={() => setShowDescription((v) => !v)}
+          className="text-xs text-muted hover:text-foreground transition-colors text-left"
+        >
+          {showDescription ? "▲ Hide description" : "💬 Description"}
+        </button>
+      )}
+      {showDescription && (
+        <CardDescription
+          identity={card}
+          cardId={card.id}
+          savedDescription={card.description}
+          savedVoice={card.descriptionVoice}
+          onUpdate={onUpdate}
+          canEdit={isOwner}
+        />
+      )}
+    </div>
+  );
 }
 
 export default function PublicProfilePage() {
@@ -200,7 +247,13 @@ export default function PublicProfilePage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {sortedCards.map((card) => (
-            <CardTile key={card.id} card={card} sortBy={sortBy} />
+            <ProfileCardWithDescription
+              key={card.id}
+              card={card}
+              sortBy={sortBy}
+              isOwner={Boolean(user && session?.user?.id === user.id)}
+              onUpdate={(updated) => setCards((prev) => (prev ? prev.map((c) => (c.id === updated.id ? updated : c)) : prev))}
+            />
           ))}
         </div>
       )}
