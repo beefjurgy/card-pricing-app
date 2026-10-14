@@ -38,10 +38,10 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
       <div className="flex justify-center mb-6">
         <Logo size={48} />
       </div>
-      <h1 className="text-3xl font-bold tracking-tight">Everything about your card collection in one place</h1>
+      <h1 className="text-3xl font-bold tracking-tight">A social network for your card collection</h1>
       <p className="text-muted mt-4 leading-relaxed">
-        Scan your cards, AI identifies them, prices them against real sold data when available, and gives you a
-        shareable profile to brag about.
+        Scan your cards, AI identifies and prices them against real sold data, then follow other collectors, react,
+        and comment — all from a shareable profile built around your collection.
       </p>
       <Link
         href="/login"
@@ -71,8 +71,8 @@ export function LandingPage({ cards }: { cards: LibraryCard[] | null }) {
           <p className="text-muted text-sm mt-1">Priced against real sold data when available.</p>
         </div>
         <div>
-          <p className="font-medium">Shareable profile</p>
-          <p className="text-muted text-sm mt-1">A public page for your collection.</p>
+          <p className="font-medium">Follow & react</p>
+          <p className="text-muted text-sm mt-1">Comment and connect with other collectors.</p>
         </div>
       </div>
     </div>

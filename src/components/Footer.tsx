@@ -43,7 +43,7 @@ export function Footer() {
               Card<span className="text-brand">Nukes</span>
             </span>
           </div>
-          <p className="text-background/70 mt-2 leading-relaxed">Everything about your collection in one place.</p>
+          <p className="text-background/70 mt-2 leading-relaxed">A social network for your card collection.</p>
           <div className="mt-4 flex items-center gap-4">
             <a href="mailto:cardnukes@gmail.com" className="text-background/80 hover:text-background transition-colors">
               cardnukes@gmail.com

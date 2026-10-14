@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Card Nukes — Sports Card Pricing",
-  description: "Scan sports cards into your nukes and track valuations from recent sales.",
+  description: "A social network for your card collection — scan, price, and share your cards with other collectors.",
   appleWebApp: {
     title: "Card Nukes",
     statusBarStyle: "default",
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                   </span>
                 </Link>
                 <span className="hidden sm:inline text-xs text-muted">
-                  Everything about your collection in one place.
+                  A social network for your card collection.
                 </span>
               </div>
               <nav className="flex items-center gap-1 text-sm">
