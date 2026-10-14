@@ -9,6 +9,11 @@ interface Term {
 // Alphabetized by term.
 const TERMS: Term[] = [
   {
+    term: "Base",
+    definition:
+      "The standard, most common version of a card in a set — no special color, finish, or parallel treatment. Everything else (parallels, inserts, autos) is a variation on or addition to the base set.",
+  },
+  {
     term: "Breaks",
     definition:
       "Opening product, especially used for group breaks: a case is made up of several boxes, similar to buying a case of beer, and buyers split up teams/slots before the host opens everything live on stream.",
@@ -29,13 +34,43 @@ const TERMS: Term[] = [
       "A card a collector has been chasing for years — the \"holy grail\" of your want list. Often high-end or personally meaningful, not necessarily the most expensive card that exists.",
   },
   {
+    term: "Insert",
+    definition:
+      "A card from a separate, often thematic subset within a product — a different design from the base set entirely, not just a recolor of it (unlike a parallel). Panini's \"Kaboom!\" or Topps' \"Diamond Anniversary\" are examples. An insert can itself have its own parallels.",
+  },
+  {
     term: "Mags",
     definition:
       "Short for mag holders (magnetic case), also called \"One-Touch\" holders — a magnetic case typically used for mid- to high-end cards that aren't graded but need protection similar to a top loader, preferred for how they display the card.",
   },
   {
+    term: "1-of-1 (1/1)",
+    definition:
+      "The rarest possible print run — exactly one copy of that specific parallel exists. Printed on the card as \"1/1.\" Not every set has one; when it does, it's usually the single chase card of the whole release.",
+  },
+  {
+    term: "Numbered",
+    definition:
+      "A parallel with a limited, fixed print run, printed directly on the card as \"x/y\" (e.g. \"23/99\" means this is copy 23 of 99 ever made). Lower print runs are scarcer and typically worth more — the rarest is a 1-of-1 (above).",
+  },
+  {
     term: "Nukes",
     definition: "A term for the standout, high-value pulls.",
+  },
+  {
+    term: "Parallel",
+    definition:
+      "A variant of a base (or insert) card that reuses the same photo and design but changes the color, finish, or border — e.g. a \"Blue\" or \"Gold\" version of the same card. Usually scarcer than base, and often serial-numbered. Different parallels of the identical card can vary wildly in value, so getting this field right matters a lot for an accurate estimate.",
+  },
+  {
+    term: "Prizm",
+    definition:
+      "Panini's flagship chrome-style finish, used across many of their products (Prizm, Select, Mosaic, Donruss Optic, etc.) — a reflective surface that comes in many named color parallels (Silver, Blue, Red Wave, Hyper, and so on).",
+  },
+  {
+    term: "Refractor",
+    definition:
+      "Topps' version of a chrome/prismatic finish, most associated with Topps Chrome and Bowman Chrome — a rainbow-tinted, light-refracting layer over the card's surface, also available in many named color parallels.",
   },
   {
     term: "Rips / Ripping",
@@ -48,9 +83,9 @@ const TERMS: Term[] = [
       "Short for Rookie Patch Autograph — a rookie card that combines a jersey/patch swatch with the player's autograph. Widely considered one of the most desirable rookie card formats in the hobby.",
   },
   {
-    term: "SSP",
+    term: "Short Print (SP) / SSP",
     definition:
-      "Short for Super Short Print — a card printed in a much smaller quantity than the regular base set or even a standard short print (SP). SSPs are rarer than SPs and are prized for that scarcity, often driving significant premiums even when they're not autographed or numbered.",
+      "A Short Print (SP) is printed in a smaller quantity than the regular base set, without necessarily being numbered. A Super Short Print (SSP) is rarer still — smaller than even a standard SP. Both are prized for scarcity, often commanding a premium even unnumbered and unautographed.",
   },
   {
     term: "Slabs / Slabbed",
