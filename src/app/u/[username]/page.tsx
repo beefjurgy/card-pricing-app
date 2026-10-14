@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
@@ -31,12 +31,20 @@ export default function PublicProfilePage() {
   const [patchOnly, setPatchOnly] = useState(false);
   const [numberedOnly, setNumberedOnly] = useState(false);
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  // A shared profile link should show off the curated highlights first,
+  // not the whole raw collection — same "bare visit defaults to Featured"
+  // behavior the home page already has. Deferred until cards actually
+  // load (isFeatured lives on the card record, not knowable ahead of the
+  // fetch), and only applied once per profile visited, not on every
+  // re-render.
+  const appliedDefaultRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     setUser(null);
     setCards(null);
     setNotFound(false);
+    appliedDefaultRef.current = false;
     fetch(`/api/users/${username}`)
       .then(async (res) => {
         if (res.status === 404) {
@@ -55,6 +63,12 @@ export default function PublicProfilePage() {
       cancelled = true;
     };
   }, [username]);
+
+  useEffect(() => {
+    if (!cards || appliedDefaultRef.current) return;
+    appliedDefaultRef.current = true;
+    if (cards.some((c) => c.isFeatured)) setFeaturedOnly(true);
+  }, [cards]);
 
   // Built from whatever sports are actually present rather than a fixed
   // list, same reasoning as the home page's equivalent.
