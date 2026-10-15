@@ -229,7 +229,7 @@ export default function PublicProfilePage() {
 
       {favorites.some((f) => f) && (
         <div className="mb-8 rounded-xl border border-border bg-surface p-5">
-          <p className="text-xs uppercase tracking-wide text-muted mb-4">Top Favorites</p>
+          <p className="text-xs uppercase tracking-wide text-muted mb-4">Favorite Cards</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {favorites.map((card, i) =>
               card ? (
