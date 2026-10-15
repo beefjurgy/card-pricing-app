@@ -228,13 +228,13 @@ export default function PublicProfilePage() {
       {user?.bio && <p className="text-sm text-foreground/90 leading-relaxed mb-6 whitespace-pre-wrap">{user.bio}</p>}
 
       {favorites.some((f) => f) && (
-        <div className="mb-8 rounded-xl bg-foreground p-6">
-          <p className="text-xs uppercase tracking-wide text-background/60 mb-4">🏆 Top Favorites</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="mb-8 rounded-xl border border-border bg-surface p-5">
+          <p className="text-xs uppercase tracking-wide text-muted mb-4">Top Favorites</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {favorites.map((card, i) =>
               card ? (
                 <Link key={card.id} href={`/card/${card.id}`} className="group block">
-                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden ring-2 ring-background/20 group-hover:ring-accent-2 transition-all">
+                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden border border-border group-hover:border-accent-2/50 transition-colors">
                     {card.imageUrl ? (
                       <Image
                         src={card.imageUrl}
@@ -248,10 +248,8 @@ export default function PublicProfilePage() {
                       <div className="w-full h-full flex items-center justify-center text-5xl bg-surface-2">🃏</div>
                     )}
                   </div>
-                  <p className="mt-2 text-sm font-medium text-background group-hover:text-accent-2 transition-colors truncate">
-                    {card.player}
-                  </p>
-                  <p className="text-xs text-background/60">{formatUsd(card.valuation.estimate)}</p>
+                  <p className="mt-2 text-sm font-medium group-hover:text-accent-2 transition-colors truncate">{card.player}</p>
+                  <p className="text-xs text-muted">{formatUsd(card.valuation.estimate)}</p>
                 </Link>
               ) : (
                 <div key={`empty-${i}`} className="hidden sm:block" />
