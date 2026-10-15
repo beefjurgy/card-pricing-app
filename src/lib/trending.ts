@@ -3,6 +3,7 @@ import { CareerStats, HallOfFameChance, Sale, Sport, TrendingSignal, Trend } fro
 const SPORT_EMOJI: Record<Sport, string> = {
   Baseball: "⚾",
   Basketball: "🏀",
+  WNBA: "🏀",
   Football: "🏈",
   Hockey: "🏒",
   Soccer: "⚽",

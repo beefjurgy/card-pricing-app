@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CardIdentity, Sport } from "@/lib/types";
 
-const SPORTS: Sport[] = ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"];
+const SPORTS: Sport[] = ["Baseball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
 const PLATFORM_OPTIONS = ["Whatnot", "eBay", "Facebook", "Store"];
 
 const EMPTY_IDENTITY: CardIdentity = {

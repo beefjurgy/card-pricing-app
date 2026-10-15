@@ -7,8 +7,9 @@ export const IDENTITY_TOOL = {
       player: { type: "string", description: "Player's full name. For non-sport cards (e.g. Garbage Pail Kids), the character's name instead." },
       sport: {
         type: "string",
-        enum: ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Other"],
-        description: "Sport the card is for. Use 'Other' for non-sport/novelty cards like Garbage Pail Kids.",
+        enum: ["Baseball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"],
+        description:
+          "Sport the card is for. Use 'WNBA' specifically for WNBA players/cards, 'Basketball' for men's/NBA. Use 'Other' for non-sport/novelty cards like Garbage Pail Kids.",
       },
       year: { type: "string", description: "Card year, e.g. 2018. Empty string if unknown." },
       brand: { type: "string", description: "Manufacturer, e.g. Topps, Panini, Bowman, Upper Deck." },

@@ -83,6 +83,7 @@ function computeHeatScore(mentions7d: number, mentions30d: number, listingCount:
 // were identical for unrelated queries), so it's been dropped entirely.
 const ESPN_SPORT_LEAGUE: Partial<Record<Sport, { sport: string; league: string; leagueAbbrev: string }>> = {
   Basketball: { sport: "basketball", league: "nba", leagueAbbrev: "NBA" },
+  WNBA: { sport: "basketball", league: "wnba", leagueAbbrev: "WNBA" },
   Football: { sport: "football", league: "nfl", leagueAbbrev: "NFL" },
   Baseball: { sport: "baseball", league: "mlb", leagueAbbrev: "MLB" },
   Hockey: { sport: "hockey", league: "nhl", leagueAbbrev: "NHL" },

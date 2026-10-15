@@ -249,6 +249,8 @@ async function fetchLiveCareerStats(player: string, sport: Sport): Promise<Caree
       return fetchNhlCareerStats(player);
     case "Basketball":
       return fetchEspnCareerStats("basketball", "nba", "NBA", player);
+    case "WNBA":
+      return fetchEspnCareerStats("basketball", "wnba", "WNBA", player);
     case "Football":
       return fetchEspnCareerStats("football", "nfl", "NFL", player);
     case "Soccer":

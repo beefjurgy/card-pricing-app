@@ -1,4 +1,4 @@
-export type Sport = "Baseball" | "Basketball" | "Football" | "Hockey" | "Soccer" | "Other";
+export type Sport = "Baseball" | "Basketball" | "WNBA" | "Football" | "Hockey" | "Soccer" | "Other";
 
 export type Trend = "up" | "down" | "flat";
 
