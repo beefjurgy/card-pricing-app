@@ -7,7 +7,7 @@ import { CopyCertButton } from "./CopyCertButton";
 import { HeatScore } from "./PlayerBuzz";
 import { CardReactions } from "./CardReactions";
 
-const SPORTS: Sport[] = ["Baseball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
+const SPORTS: Sport[] = ["Baseball", "Softball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
 
 const inputClass = "px-3 py-2 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none";
 

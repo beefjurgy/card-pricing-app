@@ -134,6 +134,7 @@ function computeTrend(sales: Sale[]): { trend: "up" | "down" | "flat"; trendPerc
 
 const SPORT_BASELINE: Record<string, number> = {
   Baseball: 45,
+  Softball: 25,
   Basketball: 55,
   WNBA: 30,
   Football: 40,

@@ -255,6 +255,13 @@ async function fetchLiveCareerStats(player: string, sport: Sport): Promise<Caree
       return fetchEspnCareerStats("football", "nfl", "NFL", player);
     case "Soccer":
       return fetchSoccerCareerStats(player);
+    case "Softball":
+      // No known live, keyless source — verified live (2026-10-26) that
+      // ESPN's site API, unlike basketball/wnba, has no structured player
+      // search results for softball at all (tested two well-known names,
+      // zero "player" type hits either time). Falls through to no career
+      // stats shown, same as "Other" — not a bug, just nothing to call.
+      return null;
     default:
       return null;
   }
