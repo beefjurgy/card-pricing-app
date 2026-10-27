@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CardIdentity, Sport } from "@/lib/types";
-
-const SPORTS: Sport[] = ["Baseball", "Softball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
+import { ALL_SPORTS as SPORTS } from "@/lib/cardFilters";
 const PLATFORM_OPTIONS = ["Whatnot", "eBay", "Facebook", "Store"];
 
 const EMPTY_IDENTITY: CardIdentity = {

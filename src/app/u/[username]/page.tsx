@@ -11,7 +11,7 @@ import { CardDescription } from "@/components/CardDescription";
 import { CommentThread } from "@/components/CommentThread";
 import { FollowButton } from "@/components/FollowButton";
 import { SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
-import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
+import { ALL_SPORTS, isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
 function formatUsd(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -144,11 +144,11 @@ export default function PublicProfilePage() {
     if (cards.some((c) => c.isFeatured)) setFeaturedOnly(true);
   }, [cards]);
 
-  // Built from whatever sports are actually present rather than a fixed
-  // list, same reasoning as the home page's equivalent.
+  // Seeded from every supported sport at 0, same reasoning as the home
+  // page's equivalent.
   const sportCounts = useMemo(() => {
     if (!cards) return [];
-    const counts = new Map<string, number>();
+    const counts = new Map<string, number>(ALL_SPORTS.map((s) => [s, 0]));
     for (const c of cards) counts.set(c.sport, (counts.get(c.sport) ?? 0) + 1);
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [cards]);

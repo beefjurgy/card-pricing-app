@@ -1,4 +1,11 @@
-import { LibraryCard } from "./types";
+import { LibraryCard, Sport } from "./types";
+
+// The one canonical list of every supported sport — every sport picker
+// (scan confirmation, Edit Details) and every "show every category, even
+// at 0 cards" filter row should import this rather than keeping its own
+// copy. Previously duplicated across 4 files; every new sport (WNBA,
+// Softball) had to touch all of them, with a real risk of missing one.
+export const ALL_SPORTS: Sport[] = ["Baseball", "Softball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
 
 // There's no dedicated structured field for "this is a memorabilia/relic
 // card" (unlike isAutograph), so this checks the same free-text fields the

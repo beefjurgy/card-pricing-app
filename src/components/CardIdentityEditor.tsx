@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { CardIdentity, LibraryCard, Sport } from "@/lib/types";
+import { CardIdentity, LibraryCard } from "@/lib/types";
 import { getCertLookupUrl } from "@/lib/gradingLinks";
 import { CopyCertButton } from "./CopyCertButton";
 import { HeatScore } from "./PlayerBuzz";
 import { CardReactions } from "./CardReactions";
-
-const SPORTS: Sport[] = ["Baseball", "Softball", "Basketball", "WNBA", "Football", "Hockey", "Soccer", "Other"];
+import { ALL_SPORTS as SPORTS } from "@/lib/cardFilters";
 
 const inputClass = "px-3 py-2 rounded-md bg-surface-2 border border-border focus:border-accent-2 outline-none";
 

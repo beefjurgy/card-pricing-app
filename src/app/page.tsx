@@ -8,7 +8,7 @@ import { LibraryCard } from "@/lib/types";
 import { CardTile } from "@/components/CardTile";
 import { LandingPage } from "@/components/LandingPage";
 import { isSortOption, SORT_LABELS, SortOption, sortCards } from "@/lib/librarySort";
-import { isNumberedCard, isPatchCard } from "@/lib/cardFilters";
+import { ALL_SPORTS, isNumberedCard, isPatchCard } from "@/lib/cardFilters";
 
 // Matches against the fields someone would actually type to find a card —
 // player is the common case, but brand/set/year/parallel let a query like
@@ -110,12 +110,12 @@ function LibraryPageInner() {
       .catch(() => setError(true));
   }, [reloadKey]);
 
-  // Built from whatever sports are actually present rather than a fixed list
-  // — automatically includes every sport the user has scanned, in whatever
-  // combination, without needing a code change each time a new one shows up.
+  // Seeded from every supported sport at 0 so the pill row always shows the
+  // full category list, not just whichever sports the user happens to have
+  // cards in yet.
   const sportCounts = useMemo(() => {
     if (!cards) return [];
-    const counts = new Map<string, number>();
+    const counts = new Map<string, number>(ALL_SPORTS.map((s) => [s, 0]));
     for (const c of cards) counts.set(c.sport, (counts.get(c.sport) ?? 0) + 1);
     return [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }, [cards]);
