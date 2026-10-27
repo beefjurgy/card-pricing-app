@@ -91,30 +91,119 @@ export async function readLibrary(): Promise<LibraryCard[]> {
   return rows.map(rowToCard);
 }
 
-export interface ActivityItem {
-  card: LibraryCard;
-  ownerUsername: string;
-  ownerAvatarUrl: string | null;
-}
+export type ActivityItem =
+  | { type: "card_added"; timestamp: string; actorUsername: string; actorAvatarUrl: string | null; card: LibraryCard }
+  | {
+      type: "comment";
+      timestamp: string;
+      actorUsername: string;
+      actorAvatarUrl: string | null;
+      body: string;
+      target: { kind: "card"; cardId: string; player: string; imageUrl: string | null } | { kind: "profile"; username: string };
+    }
+  | {
+      type: "reaction";
+      timestamp: string;
+      actorUsername: string;
+      actorAvatarUrl: string | null;
+      reaction: "heart" | "thumbs_up";
+      cardId: string;
+      player: string;
+      imageUrl: string | null;
+    };
 
-// Same is_public filter as readLibrary — a card someone's hidden from
-// public view shouldn't leak into a follower's feed either.
+// Each query is independently limited, then the merged, timestamp-sorted
+// list is trimmed to the requested size — simpler than one combined SQL
+// query across three differently-shaped sources, and fine at this scale.
+// Same is_public filter as readLibrary throughout — a card someone's hidden
+// from public view shouldn't leak into a follower's feed either way (as the
+// new card itself, a comment on it, or a reaction to it).
 export async function readActivityFeed(followedUserIds: string[], limit: number): Promise<ActivityItem[]> {
   if (followedUserIds.length === 0) return [];
-  const rows = (await sql`
-    SELECT c.*, u.username AS owner_username, COALESCE(u.avatar_url, u.image) AS owner_avatar_url
-    FROM cards c
-    JOIN users u ON u.id = c.user_id
-    WHERE c.user_id = ANY(${followedUserIds}) AND c.is_public = true AND u.username IS NOT NULL
-    ORDER BY c.date_added DESC
-    LIMIT ${limit}
-  `) as (CardRow & { owner_username: string; owner_avatar_url: string | null })[];
 
-  return rows.map((row) => ({
-    card: rowToCard(row),
-    ownerUsername: row.owner_username,
-    ownerAvatarUrl: row.owner_avatar_url,
-  }));
+  const [cardRows, cardCommentRows, profileCommentRows, reactionRows] = await Promise.all([
+    sql`
+      SELECT c.*, u.username AS actor_username, COALESCE(u.avatar_url, u.image) AS actor_avatar_url
+      FROM cards c
+      JOIN users u ON u.id = c.user_id
+      WHERE c.user_id = ANY(${followedUserIds}) AND c.is_public = true AND u.username IS NOT NULL
+      ORDER BY c.date_added DESC
+      LIMIT ${limit}
+    ` as Promise<(CardRow & { actor_username: string; actor_avatar_url: string | null })[]>,
+    sql`
+      SELECT cm.body, cm.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
+        c.id AS card_id, c.player, c.image_url
+      FROM comments cm
+      JOIN users au ON au.id = cm.author_id
+      JOIN cards c ON c.id = cm.card_id
+      WHERE cm.author_id = ANY(${followedUserIds}) AND c.is_public = true AND au.username IS NOT NULL
+      ORDER BY cm.created_at DESC
+      LIMIT ${limit}
+    ` as Promise<
+      { body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; card_id: string; player: string; image_url: string }[]
+    >,
+    sql`
+      SELECT cm.body, cm.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
+        pu.username AS target_username
+      FROM comments cm
+      JOIN users au ON au.id = cm.author_id
+      JOIN users pu ON pu.id = cm.profile_user_id
+      WHERE cm.author_id = ANY(${followedUserIds}) AND au.username IS NOT NULL AND pu.username IS NOT NULL
+      ORDER BY cm.created_at DESC
+      LIMIT ${limit}
+    ` as Promise<{ body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; target_username: string }[]>,
+    sql`
+      SELECT cr.reaction, cr.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
+        c.id AS card_id, c.player, c.image_url
+      FROM card_reactions cr
+      JOIN users au ON au.id = cr.user_id
+      JOIN cards c ON c.id = cr.card_id
+      WHERE cr.user_id = ANY(${followedUserIds}) AND c.is_public = true AND au.username IS NOT NULL
+      ORDER BY cr.created_at DESC
+      LIMIT ${limit}
+    ` as Promise<
+      { reaction: "heart" | "thumbs_up"; created_at: string; actor_username: string; actor_avatar_url: string | null; card_id: string; player: string; image_url: string }[]
+    >,
+  ]);
+
+  const items: ActivityItem[] = [
+    ...cardRows.map((row): ActivityItem => ({
+      type: "card_added",
+      timestamp: new Date(row.date_added).toISOString(),
+      actorUsername: row.actor_username,
+      actorAvatarUrl: row.actor_avatar_url,
+      card: rowToCard(row),
+    })),
+    ...cardCommentRows.map((row): ActivityItem => ({
+      type: "comment",
+      timestamp: new Date(row.created_at).toISOString(),
+      actorUsername: row.actor_username,
+      actorAvatarUrl: row.actor_avatar_url,
+      body: row.body,
+      target: { kind: "card", cardId: row.card_id, player: row.player, imageUrl: row.image_url },
+    })),
+    ...profileCommentRows.map((row): ActivityItem => ({
+      type: "comment",
+      timestamp: new Date(row.created_at).toISOString(),
+      actorUsername: row.actor_username,
+      actorAvatarUrl: row.actor_avatar_url,
+      body: row.body,
+      target: { kind: "profile", username: row.target_username },
+    })),
+    ...reactionRows.map((row): ActivityItem => ({
+      type: "reaction",
+      timestamp: new Date(row.created_at).toISOString(),
+      actorUsername: row.actor_username,
+      actorAvatarUrl: row.actor_avatar_url,
+      reaction: row.reaction,
+      cardId: row.card_id,
+      player: row.player,
+      imageUrl: row.image_url,
+    })),
+  ];
+
+  items.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return items.slice(0, limit);
 }
 
 export async function readLibraryForUser(userId: string): Promise<LibraryCard[]> {
