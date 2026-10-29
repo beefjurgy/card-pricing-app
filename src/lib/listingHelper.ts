@@ -32,7 +32,7 @@ export function buildListingDescription(card: LibraryCard): string {
   if (card.gradingCompany && card.grade) {
     lines.push(`Professionally graded ${card.gradingCompany} ${card.grade}${card.certNumber ? ` (cert #${card.certNumber})` : ""}.`);
   } else {
-    lines.push("Raw / ungraded — please review photos closely for condition.");
+    lines.push("Raw / ungraded.");
   }
 
   if (card.isAutograph) {
