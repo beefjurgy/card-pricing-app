@@ -176,36 +176,46 @@ function LibraryPageInner() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
-      <div className="mb-4">
-        <h1 className="text-3xl font-bold tracking-tight">My Collection</h1>
-        <p className="text-muted text-sm mt-1">
-          {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
-          {cards && filteredCards.length > 0 && isOwner && (
-            <>
-              {" "}
-              · Est. total value{" "}
-              <Link href="/portfolio" className="hover:underline">
-                <span className="text-accent font-medium">
-                  {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
-                </span>
-              </Link>
-              {overallPct !== null && (
-                <>
-                  {" "}
-                  ·{" "}
-                  <Link href="/portfolio" className="hover:underline">
-                    <span className={`font-medium ${overallPositive ? "text-up" : "text-down"}`}>
-                      {overallPositive ? "+" : ""}
-                      {overallDiff.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} (
-                      {overallPositive ? "+" : ""}
-                      {overallPct}%)
-                    </span>
-                  </Link>
-                </>
-              )}
-            </>
-          )}
-        </p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">My Collection</h1>
+          <p className="text-muted text-sm mt-1">
+            {cards ? `${filteredCards.length} card${filteredCards.length === 1 ? "" : "s"}` : "Loading…"}
+            {cards && filteredCards.length > 0 && isOwner && (
+              <>
+                {" "}
+                · Est. total value{" "}
+                <Link href="/portfolio" className="hover:underline">
+                  <span className="text-accent font-medium">
+                    {totalValue.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+                  </span>
+                </Link>
+                {overallPct !== null && (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <Link href="/portfolio" className="hover:underline">
+                      <span className={`font-medium ${overallPositive ? "text-up" : "text-down"}`}>
+                        {overallPositive ? "+" : ""}
+                        {overallDiff.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })} (
+                        {overallPositive ? "+" : ""}
+                        {overallPct}%)
+                      </span>
+                    </Link>
+                  </>
+                )}
+              </>
+            )}
+          </p>
+        </div>
+        {cards && cards.length > 0 && (
+          <a
+            href="/api/library/export"
+            className="shrink-0 text-xs px-3 py-1.5 rounded-md border border-border text-muted hover:bg-surface-2 hover:text-foreground transition-colors whitespace-nowrap"
+          >
+            ⬇ Export CSV
+          </a>
+        )}
       </div>
 
       {cards && cards.length > 1 && (
