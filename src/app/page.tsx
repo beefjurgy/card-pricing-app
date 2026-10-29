@@ -210,7 +210,7 @@ function LibraryPageInner() {
         </div>
         {cards && cards.length > 0 && (
           <a
-            href="/api/library/export"
+            href="/api/export-library"
             className="shrink-0 text-xs px-3 py-1.5 rounded-md border border-border text-muted hover:bg-surface-2 hover:text-foreground transition-colors whitespace-nowrap"
           >
             ⬇ Export CSV
