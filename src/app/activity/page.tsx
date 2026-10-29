@@ -81,7 +81,7 @@ export default function ActivityPage() {
         ) : items.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-surface p-12 text-center">
             <p className="text-muted text-sm">
-              Nothing here yet — follow someone from their profile to see what they're up to.
+              Nothing here yet — follow someone from their profile to see what they&apos;re up to.
             </p>
           </div>
         ) : (
