@@ -121,7 +121,11 @@ export type ActivityItem =
 export async function readActivityFeed(followedUserIds: string[], limit: number): Promise<ActivityItem[]> {
   if (followedUserIds.length === 0) return [];
 
-  const [cardRows, cardCommentRows, profileCommentRows, reactionRows] = await Promise.all([
+  // Cast the AWAITED results, not the raw query promises — Promise<T>'s
+  // structural check (via its `then` signature) is much stricter than
+  // casting a plain resolved array, which is why every other query in this
+  // file casts `(await sql\`...\`)` rather than `sql\`...\` as Promise<...>`.
+  const [cardRows, cardCommentRows, profileCommentRows, reactionRows] = (await Promise.all([
     sql`
       SELECT c.*, u.username AS actor_username, COALESCE(u.avatar_url, u.image) AS actor_avatar_url
       FROM cards c
@@ -129,7 +133,7 @@ export async function readActivityFeed(followedUserIds: string[], limit: number)
       WHERE c.user_id = ANY(${followedUserIds}) AND c.is_public = true AND u.username IS NOT NULL
       ORDER BY c.date_added DESC
       LIMIT ${limit}
-    ` as Promise<(CardRow & { actor_username: string; actor_avatar_url: string | null })[]>,
+    `,
     sql`
       SELECT cm.body, cm.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
         c.id AS card_id, c.player, c.image_url
@@ -139,9 +143,7 @@ export async function readActivityFeed(followedUserIds: string[], limit: number)
       WHERE cm.author_id = ANY(${followedUserIds}) AND c.is_public = true AND au.username IS NOT NULL
       ORDER BY cm.created_at DESC
       LIMIT ${limit}
-    ` as Promise<
-      { body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; card_id: string; player: string; image_url: string }[]
-    >,
+    `,
     sql`
       SELECT cm.body, cm.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
         pu.username AS target_username
@@ -151,7 +153,7 @@ export async function readActivityFeed(followedUserIds: string[], limit: number)
       WHERE cm.author_id = ANY(${followedUserIds}) AND au.username IS NOT NULL AND pu.username IS NOT NULL
       ORDER BY cm.created_at DESC
       LIMIT ${limit}
-    ` as Promise<{ body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; target_username: string }[]>,
+    `,
     sql`
       SELECT cr.reaction, cr.created_at, au.username AS actor_username, COALESCE(au.avatar_url, au.image) AS actor_avatar_url,
         c.id AS card_id, c.player, c.image_url
@@ -161,10 +163,21 @@ export async function readActivityFeed(followedUserIds: string[], limit: number)
       WHERE cr.user_id = ANY(${followedUserIds}) AND c.is_public = true AND au.username IS NOT NULL
       ORDER BY cr.created_at DESC
       LIMIT ${limit}
-    ` as Promise<
-      { reaction: "heart" | "thumbs_up"; created_at: string; actor_username: string; actor_avatar_url: string | null; card_id: string; player: string; image_url: string }[]
-    >,
-  ]);
+    `,
+  ])) as [
+    (CardRow & { actor_username: string; actor_avatar_url: string | null })[],
+    { body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; card_id: string; player: string; image_url: string }[],
+    { body: string; created_at: string; actor_username: string; actor_avatar_url: string | null; target_username: string }[],
+    {
+      reaction: "heart" | "thumbs_up";
+      created_at: string;
+      actor_username: string;
+      actor_avatar_url: string | null;
+      card_id: string;
+      player: string;
+      image_url: string;
+    }[],
+  ];
 
   const items: ActivityItem[] = [
     ...cardRows.map((row): ActivityItem => ({
