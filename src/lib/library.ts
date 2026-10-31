@@ -39,6 +39,10 @@ interface CardRow {
   purchase_price: string | null; // NUMERIC comes back as a string from the driver
   purchase_date: string | null;
   purchase_platform: string | null;
+  is_sold: boolean;
+  sold_price: string | null; // NUMERIC comes back as a string from the driver
+  sold_date: string | null;
+  sold_platform: string | null;
   is_featured: boolean;
   is_public: boolean;
   description: string | null;
@@ -75,6 +79,10 @@ function rowToCard(row: CardRow): LibraryCard {
     purchasePrice: row.purchase_price !== null ? Number(row.purchase_price) : null,
     purchaseDate: row.purchase_date,
     purchasePlatform: row.purchase_platform,
+    isSold: row.is_sold,
+    soldPrice: row.sold_price !== null ? Number(row.sold_price) : null,
+    soldDate: row.sold_date,
+    soldPlatform: row.sold_platform,
     isFeatured: row.is_featured,
     isPublic: row.is_public,
     description: row.description,
@@ -250,8 +258,8 @@ export async function getCard(id: string): Promise<LibraryCard | null> {
   return rows.length ? rowToCard(rows[0]) : null;
 }
 
-// Mirrors the route's PATCH allowlist — purchase info, isFeatured, the
-// generated description, and now the identity fields (editable via the
+// Mirrors the route's PATCH allowlist — purchase info, sold info, isFeatured,
+// the generated description, and now the identity fields (editable via the
 // in-app card editor). Valuation and images are deliberately absent: they
 // only ever come from the scan flow or refresh-valuation's own setter, never
 // this generic patch path.
@@ -264,6 +272,10 @@ export async function updateCard(id: string, patch: Partial<LibraryCard>): Promi
     SET purchase_price = ${merged.purchasePrice},
         purchase_date = ${merged.purchaseDate},
         purchase_platform = ${merged.purchasePlatform},
+        is_sold = ${merged.isSold},
+        sold_price = ${merged.soldPrice},
+        sold_date = ${merged.soldDate},
+        sold_platform = ${merged.soldPlatform},
         is_featured = ${merged.isFeatured},
         is_public = ${merged.isPublic},
         description = ${merged.description},

@@ -20,6 +20,7 @@ import { CardDescription } from "@/components/CardDescription";
 import { CardTile } from "@/components/CardTile";
 import { SectionHeading } from "@/components/SectionHeading";
 import { PurchaseInfo } from "@/components/PurchaseInfo";
+import { SoldInfo } from "@/components/SoldInfo";
 import { PrepareListing } from "@/components/PrepareListing";
 import { CardIdentityEditor } from "@/components/CardIdentityEditor";
 import { SetInfoCard } from "@/components/SetInfoCard";
@@ -309,6 +310,11 @@ function CardDetailPageInner() {
             ) : (
               <div className="w-full h-full flex items-center justify-center text-5xl">🃏</div>
             )}
+            {card.isSold && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+                <span className="text-white text-lg font-bold tracking-widest border-2 border-white px-4 py-1 -rotate-12">SOLD</span>
+              </div>
+            )}
             {isOwner && (
               <label
                 onClick={(e) => e.stopPropagation()}
@@ -434,6 +440,8 @@ function CardDetailPageInner() {
           />
 
           {isOwner && <PurchaseInfo card={card} onUpdate={setCard} />}
+
+          {isOwner && <SoldInfo card={card} onUpdate={setCard} />}
 
           {isOwner && <PrepareListing card={card} />}
 

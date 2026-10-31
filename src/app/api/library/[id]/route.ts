@@ -12,12 +12,13 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return NextResponse.json({ card: redactForViewer(card, session?.user?.id) });
 }
 
-// Purchase info, the isFeatured toggle, the generated description, and now
-// the identity fields (player/set/parallel/grading/etc., via the in-app
-// editor) are all editable after a card's been added. Valuation and images
-// still only ever come from the scan flow or the refresh-valuation route —
-// this stays a fixed allowlist rather than a generic dynamic-column UPDATE
-// so an identity edit can never accidentally overwrite those.
+// Purchase info, sold info, the isFeatured toggle, the generated
+// description, and now the identity fields (player/set/parallel/grading/
+// etc., via the in-app editor) are all editable after a card's been added.
+// Valuation and images still only ever come from the scan flow or the
+// refresh-valuation route — this stays a fixed allowlist rather than a
+// generic dynamic-column UPDATE so an identity edit can never accidentally
+// overwrite those.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -35,6 +36,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     purchasePrice?: number | null;
     purchaseDate?: string | null;
     purchasePlatform?: string | null;
+    isSold?: boolean;
+    soldPrice?: number | null;
+    soldDate?: string | null;
+    soldPlatform?: string | null;
     isFeatured?: boolean;
     isPublic?: boolean;
     description?: string | null;
@@ -62,6 +67,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
   if ("purchaseDate" in body) patch.purchaseDate = body.purchaseDate || null;
   if ("purchasePlatform" in body) patch.purchasePlatform = body.purchasePlatform || null;
+  if ("isSold" in body) patch.isSold = Boolean(body.isSold);
+  if ("soldPrice" in body) {
+    patch.soldPrice = typeof body.soldPrice === "number" && !Number.isNaN(body.soldPrice) ? body.soldPrice : null;
+  }
+  if ("soldDate" in body) patch.soldDate = body.soldDate || null;
+  if ("soldPlatform" in body) patch.soldPlatform = body.soldPlatform || null;
   if ("isFeatured" in body) patch.isFeatured = Boolean(body.isFeatured);
   if ("isPublic" in body) patch.isPublic = Boolean(body.isPublic);
   if ("description" in body) patch.description = body.description || null;

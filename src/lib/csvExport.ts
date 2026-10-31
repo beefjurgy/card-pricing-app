@@ -14,6 +14,8 @@ const HEADERS = [
   "Cert #",
   "Price Paid",
   "Current Value",
+  "Sold",
+  "Sold Price",
   "Link",
 ];
 
@@ -44,6 +46,8 @@ export function buildCardsCsv(cards: LibraryCard[], baseUrl: string): string {
       card.certNumber,
       card.purchasePrice ?? "",
       card.valuation.estimate,
+      card.isSold ? "Yes" : "",
+      card.soldPrice ?? "",
       `${baseUrl}/card/${card.id}`,
     ]
       .map(csvField)

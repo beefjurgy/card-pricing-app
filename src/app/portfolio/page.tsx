@@ -46,6 +46,12 @@ export default function PortfolioPage() {
       .catch(() => setError(true));
   }, []);
 
+  // Everything below is about the collection you still hold — a sold card's
+  // "current value" no longer means anything (it's been turned into cash),
+  // so every unrealized-performance calc on this page excludes sold cards.
+  // Realized performance for sold cards gets its own section further down.
+  const unsoldCards = useMemo(() => cards?.filter((c) => !c.isSold) ?? [], [cards]);
+
   // Only cards with a recorded purchase price have a real cost basis — same
   // subset the library page's overall gain/loss percentage is built from.
   // Ordered by when each card was actually bought (falling back to when it
@@ -54,8 +60,7 @@ export default function PortfolioPage() {
   // alongside each other as the collection was actually built, not as it
   // happened to get scanned in.
   const points = useMemo(() => {
-    if (!cards) return [];
-    const costBasisCards = cards.filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number");
+    const costBasisCards = unsoldCards.filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number");
     const sortKey = (c: LibraryCard) => c.purchaseDate ?? c.dateAdded;
     const ordered = [...costBasisCards].sort((a, b) => (sortKey(a) < sortKey(b) ? -1 : 1));
 
@@ -72,24 +77,24 @@ export default function PortfolioPage() {
         value: cumulativeValue,
       };
     });
-  }, [cards]);
+  }, [unsoldCards]);
 
   const latest = points[points.length - 1];
   const overallDiff = latest ? latest.value - latest.paid : 0;
   const overallPct = latest && latest.paid > 0 ? Math.round((overallDiff / latest.paid) * 1000) / 10 : null;
 
-  // The library page's "Est. total value" — every card, whether or not a
-  // purchase price was ever recorded. Shown here too, clearly labeled, so
-  // it's obvious this is a different (larger) figure than "Priced Value"
-  // below rather than looking like the same number failing to match.
-  const fullCollectionValue = cards?.reduce((sum, c) => sum + c.valuation.estimate, 0) ?? 0;
+  // The library page's "Est. total value" — every still-owned card, whether
+  // or not a purchase price was ever recorded. Shown here too, clearly
+  // labeled, so it's obvious this is a different (larger) figure than
+  // "Priced Value" below rather than looking like the same number failing to
+  // match.
+  const fullCollectionValue = unsoldCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
 
   // By value rather than card count — a portfolio page is about what the
   // collection is worth, and one $2,000 card should outweigh ten $5 ones.
   const sportBreakdown = useMemo(() => {
-    if (!cards) return [];
     const totals = new Map<string, { value: number; count: number }>();
-    for (const c of cards) {
+    for (const c of unsoldCards) {
       const entry = totals.get(c.sport) ?? { value: 0, count: 0 };
       entry.value += c.valuation.estimate;
       entry.count += 1;
@@ -98,16 +103,15 @@ export default function PortfolioPage() {
     return [...totals.entries()]
       .map(([sport, { value, count }]) => ({ sport, value, count }))
       .sort((a, b) => b.value - a.value);
-  }, [cards]);
+  }, [unsoldCards]);
 
   // By total value across every card of that player, not just their single
   // priciest card — same "value, not count" framing as the sport breakdown
   // above, since one $2,000 rookie should outrank ten $5 commons of a
   // different player.
   const topPlayers = useMemo(() => {
-    if (!cards) return [];
     const totals = new Map<string, { value: number; count: number }>();
-    for (const c of cards) {
+    for (const c of unsoldCards) {
       const entry = totals.get(c.player) ?? { value: 0, count: 0 };
       entry.value += c.valuation.estimate;
       entry.count += 1;
@@ -117,15 +121,14 @@ export default function PortfolioPage() {
       .map(([player, { value, count }]) => ({ player, value, count }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
-  }, [cards]);
+  }, [unsoldCards]);
 
   // Dollar gain, not percentage — a $500 card up 10% ($50) is a bigger real
   // gain than a $10 card up 200% ($20), and this list is about dollars
   // earned, same framing as the "Gain / Loss" stat above. Only cards with a
   // recorded purchase price have a real cost basis to gain against.
   const topGainers = useMemo(() => {
-    if (!cards) return [];
-    return cards
+    return unsoldCards
       .filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number")
       .map((c) => ({
         card: c,
@@ -134,7 +137,30 @@ export default function PortfolioPage() {
       }))
       .sort((a, b) => b.gain - a.gain)
       .slice(0, 10);
+  }, [unsoldCards]);
+
+  // Realized performance for cards that have actually been sold — separate
+  // from every calc above, which is about the collection still being held.
+  // Only cards with both a recorded sold price and a recorded purchase
+  // price have a real realized gain/loss; cards sold with no purchase price
+  // on file still show what they sold for, just no gain figure.
+  const soldCards: { card: LibraryCard; gain: number | null }[] = useMemo(() => {
+    if (!cards) return [];
+    return cards
+      .filter((c) => c.isSold)
+      .map((c) => ({
+        card: c,
+        gain: typeof c.purchasePrice === "number" && typeof c.soldPrice === "number" ? c.soldPrice - c.purchasePrice : null,
+      }))
+      .sort((a, b) => {
+        const dateOf = (x: { card: LibraryCard }) => x.card.soldDate ?? x.card.dateAdded;
+        return dateOf(b) < dateOf(a) ? -1 : 1;
+      });
   }, [cards]);
+
+  const totalRealized = soldCards.reduce((sum, { card }) => sum + (card.soldPrice ?? 0), 0);
+  const realizedGainCards = soldCards.filter((s): s is { card: LibraryCard; gain: number } => s.gain !== null);
+  const totalRealizedGain = realizedGainCards.reduce((sum, { gain }) => sum + gain, 0);
 
   if (status === "loading") return null;
 
@@ -176,6 +202,12 @@ export default function PortfolioPage() {
             <p className="text-xs text-muted uppercase tracking-wide">Full Collection Value</p>
             <p className="text-2xl font-bold text-accent">{formatUsd(fullCollectionValue)}</p>
           </div>
+          {soldCards.length > 0 && (
+            <div>
+              <p className="text-xs text-muted uppercase tracking-wide">Total Realized ({soldCards.length} sold)</p>
+              <p className="text-2xl font-bold">{formatUsd(totalRealized)}</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -268,6 +300,47 @@ export default function PortfolioPage() {
                     </span>
                   )}
                 </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {soldCards.length > 0 && (
+        <div className="mt-8 rounded-xl border border-border bg-surface p-5">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-xs text-muted uppercase tracking-wide">Sold Cards</p>
+            {realizedGainCards.length > 0 && (
+              <p className={`text-sm font-medium ${totalRealizedGain >= 0 ? "text-up" : "text-down"}`}>
+                {totalRealizedGain >= 0 ? "+" : ""}
+                {formatUsd(totalRealizedGain)} realized
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            {soldCards.map(({ card, gain }) => (
+              <Link
+                key={card.id}
+                href={`/card/${card.id}`}
+                className="flex items-center gap-3 text-sm rounded-md -mx-2 px-2 py-1 hover:bg-surface-2 transition-colors"
+              >
+                <span className="flex-1 min-w-0 truncate">
+                  <span className="font-medium">{card.player}</span>
+                  {card.soldDate && (
+                    <span className="text-muted">
+                      {" "}
+                      · {new Date(`${card.soldDate}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  )}
+                  {card.soldPlatform && <span className="text-muted"> · {card.soldPlatform}</span>}
+                </span>
+                {typeof card.soldPrice === "number" && <span className="font-medium whitespace-nowrap">{formatUsd(card.soldPrice)}</span>}
+                {gain !== null && (
+                  <span className={`font-medium whitespace-nowrap ${gain >= 0 ? "text-up" : "text-down"}`}>
+                    {gain >= 0 ? "+" : ""}
+                    {formatUsd(gain)}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

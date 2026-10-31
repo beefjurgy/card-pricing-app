@@ -50,6 +50,7 @@ function LibraryPageInner() {
   const [patchOnly, setPatchOnly] = useState(searchParams.get("patch") === "1");
   const [numberedOnly, setNumberedOnly] = useState(searchParams.get("numbered") === "1");
   const [featuredOnly, setFeaturedOnly] = useState(searchParams.get("featured") === "1");
+  const [soldOnly, setSoldOnly] = useState(searchParams.get("sold") === "1");
   // Owned by the persistent header search bar (GlobalSearch), not local
   // state here — derived live from the URL so typing there re-filters this
   // page without needing a shared context or a full remount.
@@ -77,6 +78,7 @@ function LibraryPageInner() {
       searchParams.get("patch") ||
       searchParams.get("numbered") ||
       searchParams.get("featured") ||
+      searchParams.get("sold") ||
       searchParams.get("q");
     if (!hasAnyFilter && cards.some((c) => c.isFeatured)) setFeaturedOnly(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,10 +94,11 @@ function LibraryPageInner() {
     if (patchOnly) params.set("patch", "1");
     if (numberedOnly) params.set("numbered", "1");
     if (featuredOnly) params.set("featured", "1");
+    if (soldOnly) params.set("sold", "1");
     if (searchQuery.trim()) params.set("q", searchQuery.trim());
     const query = params.toString();
     router.replace(query ? `/?${query}` : "/", { scroll: false });
-  }, [isOwner, sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery, router]);
+  }, [isOwner, sortBy, sportFilter, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, soldOnly, searchQuery, router]);
 
   useEffect(() => {
     fetch("/api/library")
@@ -133,6 +136,7 @@ function LibraryPageInner() {
   const patchCount = sportFilteredCards.filter(isPatchCard).length;
   const numberedCount = sportFilteredCards.filter(isNumberedCard).length;
   const featuredCount = sportFilteredCards.filter((c) => c.isFeatured).length;
+  const soldCount = sportFilteredCards.filter((c) => c.isSold).length;
 
   const filteredCards = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -146,9 +150,10 @@ function LibraryPageInner() {
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
       if (featuredOnly && !c.isFeatured) return false;
+      if (soldOnly && !c.isSold) return false;
       return true;
     });
-  }, [cards, sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, searchQuery]);
+  }, [cards, sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, soldOnly, searchQuery]);
 
   function handleFeaturedChange(id: string, isFeatured: boolean) {
     setCards((prev) => (prev ? prev.map((c) => (c.id === id ? { ...c, isFeatured } : c)) : prev));
@@ -158,13 +163,21 @@ function LibraryPageInner() {
     setCards((prev) => (prev ? prev.map((c) => (c.id === updated.id ? updated : c)) : prev));
   }
 
-  const totalValue = filteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
+  // A sold card no longer belongs to the live collection's value — it's
+  // already been turned into cash, which the portfolio page's realized-sales
+  // section tracks separately. Excluded here regardless of which pill is
+  // active, including the Sold pill itself (viewing just your sold cards
+  // isn't meant to show a "current value" total for them).
+  const unsoldFilteredCards = filteredCards.filter((c) => !c.isSold);
+  const totalValue = unsoldFilteredCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
 
   // Only cards with a recorded purchase price count toward the overall
   // gain/loss — mixing in cards with no known cost basis would make the
   // percentage meaningless, same reasoning as the per-card figure.
-  const costBasisCards = filteredCards.filter((c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number");
+  const costBasisCards = unsoldFilteredCards.filter(
+    (c): c is LibraryCard & { purchasePrice: number } => typeof c.purchasePrice === "number"
+  );
   const totalPaid = costBasisCards.reduce((sum, c) => sum + c.purchasePrice, 0);
   const totalPaidValue = costBasisCards.reduce((sum, c) => sum + c.valuation.estimate, 0);
   const overallDiff = totalPaidValue - totalPaid;
@@ -283,6 +296,14 @@ function LibraryPageInner() {
             }`}
           >
             🔢 Numbered ({numberedCount})
+          </button>
+          <button
+            onClick={() => setSoldOnly((v) => !v)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              soldOnly ? "bg-brand text-white" : "bg-surface-2 text-muted hover:text-foreground"
+            }`}
+          >
+            💸 Sold ({soldCount})
           </button>
         </div>
       )}

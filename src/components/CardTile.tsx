@@ -100,6 +100,11 @@ export function CardTile({
             ✍️
           </span>
         )}
+        {card.isSold && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
+            <span className="text-white text-sm font-bold tracking-widest border-2 border-white px-3 py-0.5 -rotate-12">SOLD</span>
+          </div>
+        )}
         {isOwner && (
           <button
             onClick={toggleFeatured}

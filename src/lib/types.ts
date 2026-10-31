@@ -108,6 +108,10 @@ export interface LibraryCard extends CardIdentity {
   purchasePrice: number | null;
   purchaseDate: string | null;
   purchasePlatform: string | null;
+  isSold: boolean;
+  soldPrice: number | null;
+  soldDate: string | null;
+  soldPlatform: string | null;
   isFeatured: boolean;
   isPublic: boolean;
   description: string | null;

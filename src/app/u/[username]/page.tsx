@@ -84,6 +84,7 @@ export default function PublicProfilePage() {
   const [patchOnly, setPatchOnly] = useState(false);
   const [numberedOnly, setNumberedOnly] = useState(false);
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [soldOnly, setSoldOnly] = useState(false);
   const [followCounts, setFollowCounts] = useState<{ followers: number; following: number } | null>(null);
   // A shared profile link should show off the curated highlights first,
   // not the whole raw collection — same "bare visit defaults to Featured"
@@ -163,6 +164,7 @@ export default function PublicProfilePage() {
   const patchCount = sportFilteredCards.filter(isPatchCard).length;
   const numberedCount = sportFilteredCards.filter(isNumberedCard).length;
   const featuredCount = sportFilteredCards.filter((c) => c.isFeatured).length;
+  const soldCount = sportFilteredCards.filter((c) => c.isSold).length;
 
   const filteredCards = useMemo(() => {
     return sportFilteredCards.filter((c) => {
@@ -171,9 +173,10 @@ export default function PublicProfilePage() {
       if (patchOnly && !isPatchCard(c)) return false;
       if (numberedOnly && !isNumberedCard(c)) return false;
       if (featuredOnly && !c.isFeatured) return false;
+      if (soldOnly && !c.isSold) return false;
       return true;
     });
-  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly]);
+  }, [sportFilteredCards, gradedOnly, autoOnly, patchOnly, numberedOnly, featuredOnly, soldOnly]);
 
   const sortedCards = useMemo(() => sortCards(filteredCards, sortBy), [filteredCards, sortBy]);
 
@@ -290,6 +293,9 @@ export default function PublicProfilePage() {
           </button>
           <button onClick={() => setNumberedOnly((v) => !v)} className={pillClass(numberedOnly)}>
             🔢 Numbered ({numberedCount})
+          </button>
+          <button onClick={() => setSoldOnly((v) => !v)} className={pillClass(soldOnly)}>
+            💸 Sold ({soldCount})
           </button>
         </div>
       )}
